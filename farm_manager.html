@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>自然農ログ</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gd:#1a3a2a; --gm:#2d5a3d; --gl:#4a8c5c; --ga:#6fcf97;
+  --sd:#2c1a0e; --sm:#5d3a1a; --sl:#8b5e3c;
+  --cream:#f5f0e8; --cd:#e8dfc8;
+  --gold:#d4a843; --gld:#f0c96a;
+  --tp:#1a1a1a; --mu:#6b6b6b; --danger:#c0392b;
+  --hh:52px; --th:40px;
+}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box;outline:none;margin:0;padding:0}
+body{font-family:"Zen Kaku Gothic New","Apple Color Emoji",sans-serif;background:var(--gd);overflow:hidden;position:fixed;width:100%;height:100%;touch-action:none}
+
+/* Header */
+header{position:fixed;top:0;width:100%;height:var(--hh);z-index:10000;background:linear-gradient(135deg,var(--gd),var(--gm));border-bottom:1px solid rgba(111,207,151,.2);display:flex;justify-content:space-between;align-items:center;padding:0 14px;box-shadow:0 2px 20px rgba(0,0,0,.4)}
+.hlogo{width:30px;height:30px;background:var(--ga);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.htitle{display:flex;align-items:center;gap:8px}
+.htxt{color:var(--cream);font-weight:900;font-size:15px}
+.htxt span{color:var(--ga)}
+.hbtns{display:flex;gap:6px}
+.hbtn{height:32px;border:none;cursor:pointer;border-radius:10px;font-size:13px;font-weight:800;background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);padding:0 12px;font-family:inherit;display:flex;align-items:center;gap:4px}
+.hbtn:active{opacity:.7}
+
+/* Tabs */
+#tabbar{position:fixed;top:var(--hh);width:100%;z-index:9999;background:var(--gm);display:flex;border-bottom:1px solid rgba(111,207,151,.15);height:var(--th)}
+.tab{flex:1;text-align:center;color:rgba(255,255,255,.5);font-size:12px;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;display:flex;align-items:center;justify-content:center}
+.tab.active{color:var(--ga);border-bottom-color:var(--ga)}
+
+/* Field view */
+#view-field{position:absolute;top:calc(var(--hh) + var(--th));bottom:0;left:0;right:0;overflow:auto;background:var(--sd);padding:24px 16px 80px;text-align:center;-webkit-overflow-scrolling:touch}
+#field{background:var(--sm);display:inline-block;position:relative;border:3px solid var(--sl);border-radius:16px;margin:0 auto;box-shadow:0 0 0 8px rgba(93,58,26,.3),0 20px 60px rgba(0,0,0,.6)}
+
+/* Stats view */
+#view-stats{display:none;position:absolute;top:calc(var(--hh) + var(--th));bottom:0;left:0;right:0;overflow-y:auto;padding:16px;background:linear-gradient(160deg,var(--gd),var(--sd))}
+.scard{background:rgba(255,255,255,.06);border:1px solid rgba(111,207,151,.15);border-radius:16px;padding:16px;margin-bottom:14px}
+.scard h3{color:var(--ga);font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:14px;text-transform:uppercase}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sitem{background:rgba(111,207,151,.08);border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(111,207,151,.1)}
+.snum{font-size:26px;font-weight:900;color:var(--ga)}
+.sunit{font-size:11px;color:var(--gld);font-weight:700;margin-top:2px}
+.sdesc{font-size:11px;color:rgba(255,255,255,.5);margin-top:3px}
+.bwrap{margin-bottom:12px}
+.blabel{display:flex;justify-content:space-between;color:rgba(255,255,255,.7);font-size:12px;margin-bottom:5px}
+.bbg{background:rgba(255,255,255,.08);border-radius:6px;height:9px;overflow:hidden}
+.bfill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--gl),var(--ga));transition:width .8s cubic-bezier(.22,1,.36,1)}
+.bfill.gold{background:linear-gradient(90deg,var(--gold),var(--gld))}
+.mgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.mcol{text-align:center}
+.mbwrap{height:70px;display:flex;align-items:flex-end;justify-content:center}
+.mb{width:100%;border-radius:3px 3px 0 0;background:linear-gradient(to top,var(--gl),var(--ga));min-height:2px;transition:height .8s cubic-bezier(.22,1,.36,1)}
+.mlbl{font-size:10px;color:rgba(255,255,255,.5);margin-top:3px}
+.mval{font-size:10px;color:var(--gld);font-weight:700;margin-top:1px}
+.empty-s{text-align:center;padding:60px 20px;color:rgba(255,255,255,.3);font-size:14px}
+
+/* Standalone crops */
+.scrop{position:absolute;touch-action:none;user-select:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;z-index:500}
+.scrop-icon{font-size:2rem;line-height:1;filter:drop-shadow(0 3px 4px rgba(0,0,0,.4))}
+.scrop-name{font-size:.6rem;font-weight:700;color:#fff;background:rgba(0,0,0,.5);border-radius:6px;padding:1px 5px;white-space:nowrap}
+.scrop.selected .scrop-icon{filter:drop-shadow(0 0 8px #f9a825) drop-shadow(0 3px 4px rgba(0,0,0,.4))}
+.scrop.happy-crop{animation:cropHappy 1.5s ease-in-out infinite}
+@keyframes cropHappy{0%,100%{filter:drop-shadow(0 3px 4px rgba(0,0,0,.4))}50%{filter:drop-shadow(0 0 12px rgba(111,207,151,.9)) drop-shadow(0 3px 4px rgba(0,0,0,.4))}}
+
+/* Zones */
+.zone{position:absolute;border-radius:10px;touch-action:none;user-select:none;cursor:pointer}
+.zone.une{background:rgba(139,195,74,.18);border:2px solid #7cb342}
+.zone.planter{background:rgba(121,85,72,.18);border:2px dashed #8d6e63}
+.zone.selected.une{box-shadow:0 0 0 3px #7cb342}
+.zone.selected.planter{box-shadow:0 0 0 3px #8d6e63;border-style:solid}
+.zone.happy{animation:hpulse 1.5s ease-in-out infinite}
+@keyframes hpulse{
+  0%,100%{box-shadow:0 0 0 2px rgba(111,207,151,.5),0 0 8px rgba(111,207,151,.2)}
+  50%{box-shadow:0 0 0 8px rgba(111,207,151,.8),0 0 28px rgba(111,207,151,.6),0 0 50px rgba(111,207,151,.3)}
+}
+/* sparkle rendered as DOM elements outside zone */
+.sparkle-el{position:absolute;font-size:18px;pointer-events:none;z-index:9999;animation:sparkleFloat 1.4s ease-in-out infinite;}
+@keyframes sparkleFloat{
+  0%{opacity:0;transform:translateY(0) scale(.6)}
+  30%{opacity:1;transform:translateY(-8px) scale(1.2)}
+  60%{opacity:1;transform:translateY(-14px) scale(1)}
+  100%{opacity:0;transform:translateY(-22px) scale(.7)}
+}
+.zlbl{position:absolute;top:0;left:0;right:0;height:20px;font-size:.65rem;font-weight:700;padding:2px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#33691e;pointer-events:none}
+.zone.planter .zlbl{color:#4e342e}
+.zrh{position:absolute;right:0;bottom:0;width:18px;height:18px;background:rgba(0,0,0,.3);cursor:se-resize;border-radius:3px 0 9px 0;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;touch-action:none}
+
+/* Segments */
+.swrap{position:absolute;top:20px;left:0;right:0;bottom:0;overflow:hidden}
+.seg{position:absolute;left:2px;right:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;border:1px solid rgba(0,0,0,.15);background:rgba(255,255,255,.55);border-radius:4px;cursor:pointer;touch-action:none;padding:2px 3px}
+.seg:hover{background:rgba(255,255,255,.75)}
+.seg.sel{background:rgba(255,240,100,.65);border:2px solid #f9a825}
+.seg-icon{font-size:1.4rem;line-height:1;pointer-events:none}
+.seg-name{font-size:.62rem;font-weight:700;color:#2d2416;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.seg-date{font-size:.55rem;color:#5c4033;pointer-events:none}
+/* resize handle at bottom of segment */
+.srh{position:absolute;bottom:0;left:0;right:0;height:7px;background:rgba(0,0,0,.2);cursor:s-resize;touch-action:none;border-radius:0 0 3px 3px}
+
+/* Planter chips */
+.pchips{position:absolute;top:22px;left:0;right:0;bottom:0;padding:3px;display:flex;flex-wrap:wrap;gap:2px;align-content:flex-start;overflow:hidden}
+.pchip{background:rgba(255,255,255,.82);border-radius:3px;padding:1px 5px;font-size:.68rem;white-space:nowrap}
+
+/* FAB */
+#fab{position:fixed;bottom:24px;right:20px;width:56px;height:56px;background:linear-gradient(135deg,var(--gl),var(--gm));border-radius:50%;border:none;font-size:28px;color:white;cursor:pointer;z-index:9000;box-shadow:0 4px 20px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;transition:transform .15s}
+#fab:active{transform:scale(.9)}
+
+/* Overlay + Sheet */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:20000;display:none;backdrop-filter:blur(10px)}
+.sheet{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,#f8f4ed,#f0ebe0);border-radius:24px 24px 0 0;padding:16px 18px 40px;display:none;z-index:21000;max-height:88vh;overflow-y:auto;box-shadow:0 -16px 50px rgba(0,0,0,.4)}
+.shandle{width:36px;height:4px;background:rgba(0,0,0,.14);border-radius:2px;margin:0 auto 14px}
+.stitle{font-size:18px;font-weight:900;color:var(--tp);margin-bottom:14px}
+.ff{width:100%;padding:13px 14px;border:1.5px solid var(--cd);border-radius:12px;font-size:15px;margin-bottom:10px;font-family:inherit;appearance:none;background:#fff;color:var(--tp)}
+.ff:focus{border-color:var(--gl);outline:none}
+.frow{display:flex;gap:8px;margin-bottom:10px}
+.frow .ff{margin-bottom:0;flex:1}
+.flabel{font-size:11px;font-weight:700;color:var(--mu);margin-bottom:3px;display:block}
+.fg{display:flex;flex-direction:column}
+.btnp{background:linear-gradient(135deg,var(--gl),var(--gm));color:white;border:none;width:100%;padding:16px;border-radius:14px;font-weight:900;font-size:15px;margin-top:6px;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(74,140,92,.35)}
+.btnp:active{opacity:.85}
+.btnd{background:linear-gradient(135deg,#e74c3c,#c0392b)}
+.btnn{background:linear-gradient(135deg,#aaa,#888);box-shadow:none}
+.log-item{padding:12px 14px;background:#fff;border-radius:10px;margin-bottom:7px;box-shadow:0 2px 6px rgba(0,0,0,.05);position:relative}
+.log-date{font-weight:900;color:var(--tp);font-size:13px}
+.log-price{color:var(--gm);font-weight:900;font-size:15px}
+.log-memo{font-size:11px;color:var(--mu);margin-top:6px;background:var(--cream);padding:6px 10px;border-radius:7px;border-left:3px solid var(--ga)}
+.log-del{position:absolute;top:10px;right:10px;background:rgba(192,57,43,.1);border:none;border-radius:7px;color:var(--danger);font-size:12px;padding:3px 8px;cursor:pointer;font-family:inherit;font-weight:800}
+.nologs{text-align:center;color:var(--mu);padding:20px;font-size:13px}
+.slbl{font-size:10px;font-weight:900;color:var(--mu);letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;margin-top:4px}
+.chip-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{background:#e8f5e9;border:1px solid #3a7d44;border-radius:20px;padding:4px 12px;font-size:.8rem;display:inline-flex;align-items:center;gap:5px}
+.chip.sel-chip{background:#fff9c4;border-color:#f9a825}
+.xbtn{color:var(--danger);cursor:pointer;font-size:.8rem;font-weight:900}
+.comp-hint{background:rgba(111,207,151,.12);border:1px solid rgba(111,207,151,.3);border-radius:10px;padding:9px 12px;font-size:12px;margin-bottom:12px;color:#2a5a3a;font-weight:700}
+
+/* Quick-log pop */
+.qpop{position:fixed;z-index:50000;background:linear-gradient(160deg,#f8f4ed,#eee8da);border-radius:18px;padding:14px;box-shadow:0 16px 50px rgba(0,0,0,.4);width:228px;animation:popIn .2s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes popIn{from{transform:scale(.75);opacity:0}to{transform:scale(1);opacity:1}}
+.qptitle{font-size:13px;font-weight:900;color:var(--tp);margin-bottom:9px}
+.qbtns{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.qbtn{padding:11px 6px;border-radius:11px;border:none;font-size:11px;font-weight:900;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.qbtn .qi{font-size:20px}
+.qbtn.seed{background:#e8f5e9;color:#2e7d32}
+.qbtn.plant{background:#e3f2fd;color:#1565c0}
+.qbtn.harvest{background:#fff8e1;color:#f57f17}
+.qbtn.sell{background:#fce4ec;color:#c62828}
+.qcancel{width:100%;margin-top:7px;padding:9px;border-radius:9px;border:none;background:rgba(0,0,0,.07);font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;color:var(--mu)}
+
+/* Crop picker grid */
+.cpick{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
+.cpick-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:10px;border:2px solid transparent;background:#fff;cursor:pointer;font-family:inherit}
+.cpick-btn:active{opacity:.7}
+.cpick-btn.sel{border-color:#3a7d44;background:#e8f5e9}
+.cpick-btn .ci{font-size:1.6rem}
+.cpick-btn .cn{font-size:.62rem;font-weight:700;color:var(--tp)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="htitle">
+    <div class="hlogo">🌿</div>
+    <div class="htxt">自然農ログ <span>v31</span></div>
+  </div>
+  <div class="hbtns">
+    <button class="hbtn" onclick="openSettings()">⚙️ 設定</button>
+  </div>
+</header>
+
+<div id="tabbar">
+  <div class="tab active" onclick="switchTab('field')">🌾 畑</div>
+  <div class="tab" onclick="switchTab('stats')">📊 統計</div>
+</div>
+
+<div id="view-field">
+  <div style="position:relative;display:inline-block;margin:0 auto">
+    <div id="field"></div>
+    <svg id="comp-lines" style="position:absolute;top:0;left:0;pointer-events:none;overflow:visible;z-index:9999"></svg>
+  </div>
+</div>
+<div id="view-stats"></div>
+
+<button id="fab" onclick="openAddZoneSheet()" title="ウネ・プランターを追加">＋</button>
+
+<div id="overlay" class="overlay" onclick="closeAllSheets()"></div>
+
+<!-- Standalone crop detail sheet -->
+<div id="scrop-sheet" class="sheet" style="z-index:21500">
+  <div class="shandle"></div>
+  <div id="sc-title" class="stitle"></div>
+  <div style="background:#fff;border-radius:14px;padding:13px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+    <div class="slbl">栽培日程</div>
+    <div class="frow">
+      <div class="fg" style="flex:1"><span class="flabel">🌱 種まき日</span><input type="date" id="sc-sow" class="ff" style="margin-bottom:0;padding:10px 12px;font-size:13px"></div>
+      <div class="fg" style="flex:1"><span class="flabel">🏡 定植日</span><input type="date" id="sc-plant" class="ff" style="margin-bottom:0;padding:10px 12px;font-size:13px"></div>
+    </div>
+    <input type="text" id="sc-note" class="ff" placeholder="メモ" style="margin-top:8px;margin-bottom:0">
+    <button class="btnp" style="padding:12px;font-size:14px;margin-top:8px" onclick="saveScropDetail()">✅ 保存</button>
+  </div>
+  <div class="slbl">記録を追加</div>
+  <div style="background:#fff;border-radius:14px;padding:13px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+    <div class="frow" style="margin-bottom:8px">
+      <input type="date" id="scl-date" class="ff" style="flex:1.4;margin-bottom:0;padding:10px 12px;font-size:13px">
+      <select id="scl-type" class="ff" style="flex:1;margin-bottom:0;padding:10px 12px;font-size:13px">
+        <option>🌱 種まき</option><option>🏠 定植</option><option>✨ 収穫</option><option>💰 販売</option>
+      </select>
+    </div>
+    <button class="btnp" style="padding:12px;font-size:14px;margin-top:4px" onclick="saveScropLog()">✅ 記録を保存</button>
+  </div>
+  <div class="slbl">過去の記録</div>
+  <div id="sc-logs"></div>
+  <button class="btnp btnd" style="margin-top:10px" onclick="delCurrentScrop()">🗑 この作物を削除</button>
+  <button class="btnp btnn" style="margin-top:8px" onclick="closeAllSheets()">とじる</button>
+</div>
+
+<!-- ① ウネ/プランター詳細シート -->
+<div id="zone-sheet" class="sheet">
+  <div class="shandle"></div>
+  <div class="stitle" id="zs-title"></div>
+  <div id="zs-comp-hint"></div>
+
+  <!-- Une: segment list -->
+  <div id="zs-une" style="display:none">
+    <div class="slbl">この畝の作付け</div>
+    <div class="chip-row" id="zs-seg-chips"></div>
+
+    <!-- segment editor -->
+    <div id="zs-seg-editor" style="display:none;background:#fffde7;border:1px solid #f9a825;border-radius:12px;padding:13px;margin-bottom:12px">
+      <div class="slbl" style="margin-bottom:8px">📌 区間を編集</div>
+      <div class="cpick" id="zs-cpick"></div>
+      <div class="frow" style="margin-bottom:0">
+        <div class="fg" style="flex:1"><span class="flabel">🌱 種まき</span><input type="date" id="zs-sow" class="ff" style="margin-bottom:0;padding:10px 12px;font-size:13px"></div>
+        <div class="fg" style="flex:1"><span class="flabel">🏡 定植</span><input type="date" id="zs-plant" class="ff" style="margin-bottom:0;padding:10px 12px;font-size:13px"></div>
+      </div>
+      <input type="text" id="zs-note" class="ff" placeholder="メモ（例: 2世代目）" style="margin-top:8px;margin-bottom:0">
+      <div style="display:flex;gap:7px;margin-top:8px">
+        <button class="btnp" style="padding:12px;font-size:14px;margin-top:0;flex:2" onclick="saveSegEdit()">✅ 保存</button>
+        <button class="btnp btnd" style="padding:12px;font-size:14px;margin-top:0;flex:1" onclick="delSeg()">🗑</button>
+      </div>
+    </div>
+
+    <button class="btnp" style="padding:13px;font-size:14px;margin-top:0;margin-bottom:10px;background:linear-gradient(135deg,#558b2f,#33691e)" onclick="addSegToSelected()">＋ 作物を追加</button>
+
+    <!-- log -->
+    <div class="slbl">記録を追加</div>
+    <div style="background:#fff;border-radius:14px;padding:13px;margin-bottom:10px">
+      <div class="frow" style="margin-bottom:8px">
+        <input type="date" id="zl-date" class="ff" style="flex:1.4;margin-bottom:0;padding:10px 12px;font-size:13px">
+        <select id="zl-type" class="ff" style="flex:1;margin-bottom:0;padding:10px 12px;font-size:13px" onchange="toggleZlSale()">
+          <option>🌱 種まき</option><option>🏠 定植</option><option>✨ 収穫</option><option>💰 販売</option>
+        </select>
+      </div>
+      <div id="zl-sale" style="display:none">
+        <input type="number" id="zl-price" class="ff" placeholder="販売価格（円）" style="padding:10px 12px;font-size:13px">
+        <textarea id="zl-memo" class="ff" placeholder="メモ" rows="2" style="resize:none;padding:10px 12px;font-size:13px;margin-bottom:0"></textarea>
+      </div>
+      <button class="btnp" style="padding:12px;font-size:14px;margin-top:8px" onclick="saveZoneLog()">✅ 記録を保存</button>
+    </div>
+    <div class="slbl">過去の記録</div>
+    <div id="zs-logs"></div>
+    <button class="btnp btnd" style="margin-top:8px" onclick="startDelZone()">🗑 この畝を削除</button>
+  </div>
+
+  <!-- Planter area -->
+  <div id="zs-plt" style="display:none">
+    <div class="slbl">配置中の作物</div>
+    <div class="chip-row" id="zs-plt-chips"></div>
+    <div class="cpick" id="zs-plt-cpick"></div>
+    <button class="btnp" style="padding:13px;font-size:14px;margin-top:0;margin-bottom:10px;background:linear-gradient(135deg,#558b2f,#33691e)" onclick="addCropToPlanter()">＋ 作物を追加</button>
+    <button class="btnp btnd" style="margin-top:4px" onclick="startDelZone()">🗑 このプランターを削除</button>
+  </div>
+
+  <div id="zs-del-confirm" style="display:none;flex-direction:column;background:#fbe9e7;border:1px solid #ef9a9a;border-radius:10px;padding:10px 13px;margin-top:8px">
+    <div style="font-size:.85rem;margin-bottom:8px" id="zs-del-msg"></div>
+    <div style="display:flex;gap:7px">
+      <button class="btnp btnd" style="padding:10px;font-size:13px;margin-top:0;flex:1" onclick="confirmDelZone()">削除する</button>
+      <button class="btnp btnn" style="padding:10px;font-size:13px;margin-top:0;flex:1" onclick="document.getElementById('zs-del-confirm').style.display='none'">キャンセル</button>
+    </div>
+  </div>
+
+  <button class="btnp btnn" style="margin-top:8px" onclick="closeAllSheets()">とじる</button>
+</div>
+
+<!-- ② 新規区間追加シート -->
+<div id="addseg-sheet" class="sheet" style="z-index:22000">
+  <div class="shandle"></div>
+  <div class="stitle">＋ 作物を追加</div>
+  <div class="cpick" id="as-cpick"></div>
+  <div class="frow">
+    <div class="fg" style="flex:1"><span class="flabel">🌱 種まき</span><input type="date" id="as-sow" class="ff" style="margin-bottom:0;padding:10px 12px;font-size:13px"></div>
+    <div class="fg" style="flex:1"><span class="flabel">🏡 定植</span><input type="date" id="as-plant" class="ff" style="margin-bottom:0;padding:10px 12px;font-size:13px"></div>
+  </div>
+  <input type="text" id="as-note" class="ff" placeholder="メモ（例: 2世代目）" style="margin-top:8px">
+  <button class="btnp" onclick="confirmAddSeg()">✅ 追加する</button>
+  <button class="btnp btnn" style="margin-top:6px" onclick="closeAllSheets()">キャンセル</button>
+</div>
+
+<!-- ③ ゾーン追加シート -->
+<div id="addzone-sheet" class="sheet" style="z-index:22000">
+  <div class="shandle"></div>
+  <div class="stitle">追加するものを選んでください</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+    <button onclick="quickAddZone('une')" style="padding:20px;border-radius:14px;border:2px solid #7cb342;background:rgba(139,195,74,.12);font-size:13px;font-weight:900;cursor:pointer;font-family:inherit;color:#33691e;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-size:2rem">🌾</span>ウネ</button>
+    <button onclick="quickAddZone('planter')" style="padding:20px;border-radius:14px;border:2px solid #8d6e63;background:rgba(121,85,72,.12);font-size:13px;font-weight:900;cursor:pointer;font-family:inherit;color:#4e342e;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-size:2rem">🪴</span>プランター</button>
+  </div>
+  <div class="slbl" style="margin-top:4px">畝なしで直接置く</div>
+  <div id="az-cpick" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px"></div>
+  <button class="btnp btnn" onclick="closeAllSheets()">キャンセル</button>
+</div>
+
+<!-- ④ 設定シート -->
+<div id="settings-sheet" class="sheet" style="z-index:22000">
+  <div class="shandle"></div>
+  <div class="stitle">⚙️ 設定</div>
+  <div class="slbl">畑のサイズ</div>
+  <div class="frow">
+    <div class="fg" style="flex:1"><span class="flabel">横幅 (px)</span><input type="number" id="cfg-w" class="ff" style="margin-bottom:0;padding:10px 12px;font-size:14px"></div>
+    <div class="fg" style="flex:1"><span class="flabel">縦幅 (px)</span><input type="number" id="cfg-h" class="ff" style="margin-bottom:0;padding:10px 12px;font-size:14px"></div>
+  </div>
+  <button class="btnp" style="padding:14px" onclick="saveFieldSize()">✅ 適用する</button>
+  <div class="slbl" style="margin-top:14px">危険ゾーン</div>
+  <button class="btnp btnd" onclick="resetAll()">⚠️ 畑を更地にする</button>
+  <button class="btnp btnn" style="margin-top:8px" onclick="closeAllSheets()">とじる</button>
+</div>
+
+<script>
+const SK='farm_v31';
+const CROPS=[
+  {i:'🍅',n:'トマト',days:90},
+  {i:'🍆',n:'ナス',days:75},
+  {i:'🥒',n:'キュウリ',days:60},
+  {i:'🥕',n:'ニンジン',days:100},
+  {i:'🌽',n:'トウモロコシ',days:90},
+  {i:'🧄',n:'ニンニク',days:240},
+  {i:'🫑',n:'ピーマン',days:80},
+  {i:'🫛',n:'エダマメ',days:75},
+  {i:'🥬',n:'レタス',days:50},
+  {i:'🌱',n:'ほうれん草',days:40},
+  {i:'🧅',n:'タマネギ',days:120},
+  {i:'🥦',n:'ブロッコリー',days:90},
+];
+
+// 種まき日から収穫予定日までの残り日数を計算
+function calcDaysLeft(sowDate, cropIcon){
+  if(!sowDate) return null;
+  const crop=getCrop(cropIcon);
+  if(!crop.days) return null;
+  const sow=new Date(sowDate);
+  const harvest=new Date(sow.getTime()+crop.days*86400000);
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  const diff=Math.round((harvest-today)/86400000);
+  return diff;
+}
+function daysLabel(diff){
+  if(diff===null) return null;
+  if(diff<0) return {txt:'収穫時期すぎ',color:'#e74c3c'};
+  if(diff===0) return {txt:'今日収穫！',color:'#e67e22'};
+  if(diff<=7) return {txt:`あと${diff}日`,color:'#e67e22'};
+  return {txt:`あと${diff}日`,color:'#27ae60'};
+}
+const CP_PAIRS=[['🍅','🧄'],['🍅','🥕'],['🍆','🫛'],['🥒','🧅'],['🌽','🫛'],['🥦','🧄'],['🫑','🧄']];
+const BP={};
+CP_PAIRS.forEach(([a,b])=>{if(!BP[a])BP[a]=[];if(!BP[b])BP[b]=[];BP[a].push(b);BP[b].push(a);});
+
+// Fix: getZoneIcons returns crop names for companion check to avoid emoji duplicates
+function getZoneIconsSafe(z){
+  const icons=[];
+  (z.segs||[]).forEach(s=>{if(s.cropIcon)icons.push(s.cropIcon);});
+  (z.crops||[]).forEach(ci=>icons.push(ci));
+  return [...new Set(icons)];
+}
+
+let S=(()=>{try{const s=localStorage.getItem(SK);return s?JSON.parse(s):null;}catch{return null;}})() || {field:{w:500,h:900},zones:[],scrops:[],nzid:1,nsid:1,ncrid:1};
+if(!S.scrops) S.scrops=[];
+if(!S.field) S.field={w:500,h:900};
+if(!S.field.w) S.field.w=500;
+if(!S.field.h) S.field.h=900;
+if(!S.ncrid) S.ncrid=1;
+if(!S.nsid) S.nsid=1;
+if(!S.nzid) S.nzid=1;
+function save(){localStorage.setItem(SK,JSON.stringify(S));}
+function isUne(z){return z.type==='une';}
+function zIcon(z){return z.type==='une'?'🌾':'🪴';}
+function getCrop(icon){return CROPS.find(c=>c.i===icon)||{i:icon,n:icon};}
+
+// ─── Drag state ───
+let dragZ=null,rezZ=null;
+let dragOX=0,dragOY=0,rezSX=0,rezSY=0,rezOW=0,rezOH=0;
+// rezSegStart0/End0/NextStart0 removed - seg resize uses rh._startY etc instead
+let mdX=0,mdY=0,didMove=false;
+let selId=null,selSegId=null,selScropId=null;
+let dragScrop=null,dragScropOX=0,dragScropOY=0;
+let qpopEl=null;
+let selPickIcon=CROPS[0].i;
+
+// ─── Companion check ───
+
+function isHappy(zi){
+  const za=S.zones[zi],ia=getZoneIconsSafe(za);
+  if(!ia.length) return false;
+  // check vs other zones
+  for(let j=0;j<S.zones.length;j++){
+    if(j===zi) continue;
+    const zb=S.zones[j],ib=getZoneIconsSafe(zb);
+    const dist=Math.hypot((za.x+za.w/2)-(zb.x+zb.w/2),(za.y+za.h/2)-(zb.y+zb.h/2));
+    if(dist>50) continue;
+    for(const a of ia) for(const b of ib)
+      if(CP_PAIRS.some(([pa,pb])=>(a===pa&&b===pb)||(a===pb&&b===pa))) return true;
+  }
+  // check vs scrops
+  for(const sc of S.scrops){
+    const dist=Math.hypot((za.x+za.w/2)-(sc.x+20),(za.y+za.h/2)-(sc.y+20));
+    if(dist>50) continue;
+    for(const a of ia)
+      if(CP_PAIRS.some(([pa,pb])=>(a===pa&&sc.icon===pb)||(a===pb&&sc.icon===pa))) return true;
+  }
+  return false;
+}
+
+function isCropHappy(sc){
+  const allIcons=[sc.icon];
+  // check against zones
+  for(const z of S.zones){
+    const zicons=getZoneIconsSafe(z);
+    const dist=Math.hypot((sc.x+20)-(z.x+z.w/2),(sc.y+20)-(z.y+z.h/2));
+    if(dist>50) continue;
+    for(const a of allIcons) for(const b of zicons)
+      if(CP_PAIRS.some(([pa,pb])=>(a===pa&&b===pb)||(a===pb&&b===pa))) return true;
+  }
+  // check against other scrops
+  for(const other of S.scrops){
+    if(other.id===sc.id) continue;
+    const dist=Math.hypot((sc.x-other.x),(sc.y-other.y));
+    if(dist>50) continue;
+    if(CP_PAIRS.some(([pa,pb])=>(sc.icon===pa&&other.icon===pb)||(sc.icon===pb&&other.icon===pa))) return true;
+  }
+  return false;
+}
+
+// ─── Render ───
+function render(){
+  const f=document.getElementById('field');
+  f.style.width=S.field.w+'px'; f.style.height=S.field.h+'px';
+  f.innerHTML='';
+  S.zones.forEach((z,zi)=>{
+    const el=document.createElement('div');
+    const happy=isHappy(zi);
+    el.className='zone '+(isUne(z)?'une':'planter')+(z.id===selId?' selected':'')+(happy?' happy':'');
+    el.style.cssText=`left:${z.x}px;top:${z.y}px;width:${z.w}px;height:${z.h}px;`;
+    el.dataset.id=z.id;
+
+    const lbl=document.createElement('div');
+    lbl.className='zlbl';
+    lbl.textContent=zIcon(z)+' '+z.name;
+    el.appendChild(lbl);
+
+    if(isUne(z)){
+      const sw=document.createElement('div'); sw.className='swrap';
+      const totalH=z.h-20;
+      (z.segs||[]).forEach(seg=>{
+        const segEl=document.createElement('div');
+        segEl.className='seg'+(seg.id===selSegId&&z.id===selId?' sel':'');
+        segEl.dataset.sid=seg.id;
+        const top=Math.round(seg.start*totalH);
+        const h=Math.max(Math.round((seg.end-seg.start)*totalH)-2,14);
+        segEl.style.cssText=`top:${top}px;height:${h}px;`;
+        const crop=getCrop(seg.cropIcon);
+        const diff=calcDaysLeft(seg.sow||seg.plant,seg.cropIcon);
+        const dl=daysLabel(diff);
+        segEl.innerHTML=`<div class="seg-icon">${crop.i}</div><div class="seg-name">${crop.n}</div>${seg.sow?`<div class="seg-date">🌱${seg.sow}</div>`:''}${dl?`<div class="seg-harvest" style="font-size:.55rem;font-weight:900;color:${dl.color};pointer-events:none">${dl.txt}</div>`:''}`;
+        const rh=document.createElement('div'); rh.className='srh';
+        segEl.appendChild(rh);
+        // seg resize
+        let segDragging=false;
+        rh.addEventListener('pointerdown',e=>{
+          e.stopPropagation(); e.preventDefault();
+          segDragging=false;
+          rh.setPointerCapture(e.pointerId);
+          // スナップショット: pointerdown時点の全区間の状態を保存
+          const idx=z.segs.findIndex(s=>s.id===seg.id);
+          const next=z.segs[idx+1];
+          rh._startY=e.clientY;
+          rh._startEnd=seg.end;
+          rh._nextEnd=next?next.end:null;
+          rh._idx=idx;
+        });
+        rh.addEventListener('pointermove',e=>{
+          if(!rh._startY) return;
+          const dy=e.clientY-rh._startY;
+          // 8px以上動いた時だけリサイズ開始
+          if(!segDragging && Math.abs(dy)<8) return;
+          segDragging=true;
+          const delta=dy/totalH;
+          const idx=rh._idx;
+          const next=z.segs[idx+1];
+          // 上限: 次の区間が最低MIN_SIZE残る位置。次がなければ1
+          const MIN=0.08;
+          const minEnd=seg.start+MIN;
+          const maxEnd=next ? rh._nextEnd-MIN : 1;
+          const newEnd=Math.max(minEnd,Math.min(maxEnd,rh._startEnd+delta));
+          seg.end=newEnd;
+          if(next) next.start=newEnd;
+          // DOMだけ更新（再renderなし）
+          const allSegs=sw.querySelectorAll('.seg');
+          z.segs.forEach((sg,si)=>{
+            const el=allSegs[si]; if(!el) return;
+            const t=Math.round(sg.start*totalH);
+            const h=Math.max(Math.round((sg.end-sg.start)*totalH)-2,14);
+            el.style.top=t+'px'; el.style.height=h+'px';
+          });
+        });
+        rh.addEventListener('pointerup',()=>{
+          if(segDragging) save();
+          segDragging=false;
+          rh._startY=null;
+        });
+        // seg click - use local move flag, not global didMove
+        let segMoved=false;
+        segEl.addEventListener('pointerdown',e=>{
+          if(e.target===rh) return; // ignore resize handle
+          segMoved=false;
+        });
+        segEl.addEventListener('pointermove',e=>{
+          if(e.target===rh) return; // ignore resize handle events
+          segMoved=true;
+        });
+        segEl.addEventListener('click',e=>{
+          if(segMoved) return;
+          e.stopPropagation();
+          selId=z.id; selSegId=seg.id;
+          openZoneSheet(z); render();
+        });
+        sw.appendChild(segEl);
+      });
+      el.appendChild(sw);
+    } else {
+      const cc=document.createElement('div'); cc.className='pchips';
+      (z.crops||[]).forEach(ci=>{
+        const c=getCrop(ci);
+        const chip=document.createElement('div'); chip.className='pchip';
+        chip.textContent=c.i+' '+c.n; cc.appendChild(chip);
+      });
+      el.appendChild(cc);
+    }
+
+    const rh=document.createElement('div'); rh.className='zrh'; rh.textContent='⤡';
+    el.appendChild(rh);
+
+    // Zone drag / resize
+    el.addEventListener('pointerdown',e=>{
+      if(e.target.closest('.srh')) return;
+      mdX=e.clientX; mdY=e.clientY; didMove=false;
+      e.stopPropagation();
+      if(e.target===rh){
+        rezZ=z; rezSX=e.clientX; rezSY=e.clientY; rezOW=z.w; rezOH=z.h;
+        el.setPointerCapture(e.pointerId);
+      } else if(!e.target.closest('.seg')){
+        dragZ=z;
+        const rect=document.getElementById('field').getBoundingClientRect();
+        dragOX=e.clientX-rect.left-z.x; dragOY=e.clientY-rect.top-z.y;
+        el.setPointerCapture(e.pointerId);
+      }
+    });
+    el.addEventListener('pointermove',e=>{
+      const c=e;
+      if(Math.abs(c.clientX-mdX)>4||Math.abs(c.clientY-mdY)>4) didMove=true;
+      const rect=document.getElementById('field').getBoundingClientRect();
+      if(dragZ&&dragZ.id===z.id){
+        z.x=Math.max(0,Math.min(S.field.w-z.w,c.clientX-rect.left-dragOX));
+        z.y=Math.max(0,Math.min(S.field.h-z.h,c.clientY-rect.top-dragOY));
+        render();
+      }
+      if(rezZ&&rezZ.id===z.id){
+        z.w=Math.max(40,Math.min(S.field.w-z.x,rezOW+(c.clientX-rezSX)));
+        z.h=Math.max(40,Math.min(S.field.h-z.y,rezOH+(c.clientY-rezSY)));
+        render();
+      }
+    });
+    el.addEventListener('pointerup',()=>{
+      // handled by document-level pointerup
+    });
+    el.addEventListener('click',e=>{
+      if(didMove) return;
+      if(e.target.closest('.seg')) return;
+      selId=z.id; selSegId=null;
+      openZoneSheet(z); render();
+    });
+
+    // Long press → quick log
+    let pressT=null;
+    el.addEventListener('pointerdown',e=>{
+      if(pressT) clearTimeout(pressT);
+      pressT=setTimeout(()=>{ if(!didMove){ showQPop(z,el); pressT=null; }},600);
+    });
+    el.addEventListener('pointerup',()=>{ if(pressT){clearTimeout(pressT);pressT=null;} });
+    el.addEventListener('pointermove',()=>{ if(pressT&&didMove){clearTimeout(pressT);pressT=null;} });
+
+    f.appendChild(el);
+
+    // sparkle for happy zones - rendered outside zone so not clipped
+    if(happy){
+      const sp=document.createElement('div');
+      sp.className='sparkle-el';
+      sp.textContent='✨';
+      sp.style.cssText=`left:${z.x+z.w-10}px;top:${z.y-20}px;animation-delay:0s;`;
+      f.appendChild(sp);
+      const sp2=document.createElement('div');
+      sp2.className='sparkle-el';
+      sp2.textContent='✨';
+      sp2.style.cssText=`left:${z.x+z.w/2-8}px;top:${z.y-18}px;animation-delay:.5s;`;
+      f.appendChild(sp2);
+    }
+  });
+
+  // ── standalone crops ──
+  S.scrops.forEach(sc=>{
+    const crop=getCrop(sc.icon);
+    const happyCrop=isCropHappy(sc);
+    const el=document.createElement('div');
+    el.className='scrop'+(sc.id===selScropId?' selected':'')+(happyCrop?' happy-crop':'');
+    el.style.cssText=`left:${sc.x}px;top:${sc.y}px;`;
+    el.dataset.scid=sc.id;
+    const scDiff=calcDaysLeft(sc.sow||sc.plant,sc.icon);
+    const scDl=daysLabel(scDiff);
+    el.innerHTML=`<div class="scrop-icon">${crop.i}</div><div class="scrop-name">${crop.n}</div>${scDl?`<div style="font-size:.55rem;font-weight:900;color:${scDl.color};text-align:center;background:rgba(0,0,0,.5);border-radius:4px;padding:1px 4px;white-space:nowrap">${scDl.txt}</div>`:''}`;
+    let scMdX=0,scMdY=0,scMoved=false;
+    el.addEventListener('pointerdown',e=>{
+      scMdX=e.clientX; scMdY=e.clientY; scMoved=false;
+      e.stopPropagation();
+      dismissQPop();
+      dragScrop=null; // only set once actual movement confirmed
+      el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener('pointermove',e=>{
+      if(Math.abs(e.clientX-scMdX)>4||Math.abs(e.clientY-scMdY)>4){
+        scMoved=true;
+        if(!dragScrop){ // start drag only on actual movement
+          dragScrop=sc;
+          const rect=document.getElementById('field').getBoundingClientRect();
+          dragScropOX=e.clientX-rect.left-sc.x;
+          dragScropOY=e.clientY-rect.top-sc.y;
+        }
+      }
+      if(!dragScrop||dragScrop.id!==sc.id) return;
+      const rect=document.getElementById('field').getBoundingClientRect();
+      sc.x=Math.max(0,Math.min(S.field.w-40,e.clientX-rect.left-dragScropOX));
+      sc.y=Math.max(0,Math.min(S.field.h-40,e.clientY-rect.top-dragScropOY));
+      el.style.left=sc.x+'px'; el.style.top=sc.y+'px';
+      // update companion lines live during drag
+      const svg=document.getElementById('comp-lines');
+      if(svg){
+        svg.innerHTML='';
+        const items=[];
+        S.zones.forEach(z=>{const icons=getZoneIconsSafe(z);if(icons.length)items.push({x:z.x+z.w/2,y:z.y+z.h/2,icons});});
+        S.scrops.forEach(s=>items.push({x:s.x+18,y:s.y+18,icons:[s.icon]}));
+        for(let i=0;i<items.length;i++) for(let j=i+1;j<items.length;j++){
+          const a=items[i],b=items[j];
+          if(Math.hypot(a.x-b.x,a.y-b.y)>50) continue;
+          let ok=false;
+          for(const ai of a.icons) for(const bi of b.icons) if(CP_PAIRS.some(([pa,pb])=>(ai===pa&&bi===pb)||(ai===pb&&bi===pa))) ok=true;
+          if(!ok) continue;
+          const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+          line.setAttribute('x1',a.x);line.setAttribute('y1',a.y);line.setAttribute('x2',b.x);line.setAttribute('y2',b.y);
+          line.setAttribute('stroke','rgba(111,207,151,0.75)');line.setAttribute('stroke-width','2.5');line.setAttribute('stroke-dasharray','6 4');
+          svg.appendChild(line);
+        }
+      }
+    });
+    el.addEventListener('pointerup',()=>{ dragScrop=null; }); // save+render handled by document pointerup
+    el.addEventListener('click',e=>{
+      if(scMoved) return;
+      e.stopPropagation();
+      selScropId=sc.id; selId=null; selSegId=null;
+      // open sheet first, then re-render (sheet refs sc by id, not el)
+      openScropSheet(sc);
+      render();
+    });
+    f.appendChild(el);
+
+    // sparkle for happy scrops
+    if(happyCrop){
+      const sp=document.createElement('div');
+      sp.className='sparkle-el';
+      sp.textContent='✨';
+      sp.style.cssText=`left:${sc.x+10}px;top:${sc.y-20}px;animation-delay:0s;`;
+      f.appendChild(sp);
+    }
+  });
+
+  // ── companion lines ──
+  const svg=document.getElementById('comp-lines');
+  if(svg){
+    svg.innerHTML='';
+    svg.style.width=S.field.w+'px';
+    svg.style.height=S.field.h+'px';
+    svg.setAttribute('viewBox',`0 0 ${S.field.w} ${S.field.h}`);
+    // collect all items with position + icons
+    const items=[];
+    S.zones.forEach(z=>{
+      const icons=getZoneIconsSafe(z);
+      if(icons.length) items.push({x:z.x+z.w/2,y:z.y+z.h/2,icons});
+    });
+    S.scrops.forEach(sc=>{
+      items.push({x:sc.x+18,y:sc.y+18,icons:[sc.icon]});
+    });
+    // draw lines between companion pairs
+    for(let i=0;i<items.length;i++){
+      for(let j=i+1;j<items.length;j++){
+        const a=items[i],b=items[j];
+        const dist=Math.hypot(a.x-b.x,a.y-b.y);
+        if(dist>50) continue; // only show when very nearby
+        let isComp=false;
+        for(const ai of a.icons) for(const bi of b.icons)
+          if(CP_PAIRS.some(([pa,pb])=>(ai===pa&&bi===pb)||(ai===pb&&bi===pa))) isComp=true;
+        if(!isComp) continue;
+        const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('x1',a.x); line.setAttribute('y1',a.y);
+        line.setAttribute('x2',b.x); line.setAttribute('y2',b.y);
+        line.setAttribute('stroke','rgba(111,207,151,0.75)');
+        line.setAttribute('stroke-width','2.5');
+        line.setAttribute('stroke-dasharray','6 4');
+        svg.appendChild(line);
+      }
+    }
+  }
+}
+
+// ─── Document-level pointer up: stop all drag/resize ───
+document.addEventListener('pointerup',()=>{
+  const wasDragging=dragZ||rezZ||dragScrop;
+  if(dragZ||rezZ) save();
+  if(dragScrop) save();
+  dragZ=null; rezZ=null; dragScrop=null;
+  // Re-render after drag to refresh companion glow
+  if(wasDragging) render();
+});
+document.addEventListener('pointerdown',()=>{
+  didMove=false; // reset global move flag on every new touch
+});
+
+// ─── Zone sheet ───
+function openZoneSheet(z){
+  document.getElementById('zs-title').textContent=zIcon(z)+' '+z.name;
+  document.getElementById('zs-del-confirm').style.display='none';
+
+  // companion hint
+  const icons=getZoneIconsSafe(z);
+  const partners=[...new Set(icons.flatMap(i=>BP[i]||[]).filter(p=>!icons.includes(p)))];
+  const hint=document.getElementById('zs-comp-hint');
+  hint.innerHTML=partners.length?`<div class="comp-hint">🌿 近くに置くと相性◎：${partners.join(' ')} ✨</div>`:'';
+
+  // close other sheets first, then setup content
+  document.querySelectorAll('.sheet').forEach(s=>s.style.display='none');
+
+  document.getElementById('zs-une').style.display=isUne(z)?'block':'none';
+  document.getElementById('zs-plt').style.display=isUne(z)?'none':'block';
+
+  if(isUne(z)){
+    renderSegChips(z);
+    document.getElementById('zl-date').valueAsDate=new Date();
+    document.getElementById('zl-type').value='🌱 種まき';
+    document.getElementById('zl-sale').style.display='none';
+    renderZoneLogs(z);
+  } else {
+    renderPltChips(z);
+    selPickIcon=CROPS[0].i; buildCropPick('zs-plt-cpick',CROPS[0].i);
+  }
+
+  document.getElementById('overlay').style.display='block';
+  document.getElementById('zone-sheet').style.display='block';
+}
+
+function renderSegChips(z){
+  const row=document.getElementById('zs-seg-chips');
+  row.innerHTML='';
+  (z.segs||[]).forEach(seg=>{
+    const c=getCrop(seg.cropIcon);
+    const chip=document.createElement('div');
+    chip.className='chip'+(seg.id===selSegId?' sel-chip':'');
+    chip.innerHTML=`${c.i} ${c.n} <span class="xbtn" onclick="selectSeg(${z.id},${seg.id})">✏️</span>`;
+    row.appendChild(chip);
+  });
+  renderSegEditor(z);
+}
+function selectSeg(zid,sid){
+  selSegId=sid; selId=zid;
+  const z=S.zones.find(x=>x.id===zid);
+  renderSegChips(z); // don't call render() - it closes the sheet
+}
+function renderSegEditor(z){
+  const ed=document.getElementById('zs-seg-editor');
+  if(!selSegId||!z){ ed.style.display='none'; return; }
+  const seg=(z.segs||[]).find(s=>s.id===selSegId);
+  if(!seg){ ed.style.display='none'; return; }
+  ed.style.display='block';
+  buildCropPick('zs-cpick',seg.cropIcon);
+  document.getElementById('zs-sow').value=seg.sow||'';
+  document.getElementById('zs-plant').value=seg.plant||'';
+  document.getElementById('zs-note').value=seg.note||'';
+}
+function saveSegEdit(){
+  const z=S.zones.find(x=>x.id===selId);
+  if(!z||!selSegId) return;
+  const seg=(z.segs||[]).find(s=>s.id===selSegId);
+  if(!seg) return;
+  const icon=selPickIcon;
+  const crop=getCrop(icon);
+  seg.cropIcon=icon; seg.cropName=crop.n;
+  seg.sow=document.getElementById('zs-sow').value;
+  seg.plant=document.getElementById('zs-plant').value;
+  seg.note=document.getElementById('zs-note').value.trim();
+  save(); render(); renderSegChips(z);
+}
+function delSeg(){
+  const z=S.zones.find(x=>x.id===selId);
+  if(!z||!selSegId) return;
+  z.segs=(z.segs||[]).filter(s=>s.id!==selSegId);
+  selSegId=null; save(); render(); renderSegChips(z);
+}
+function addSegToSelected(){
+  selPickIcon=CROPS[0].i;
+  document.getElementById('as-sow').value='';
+  document.getElementById('as-plant').value='';
+  document.getElementById('as-note').value='';
+  buildCropPick('as-cpick',CROPS[0].i);
+  document.getElementById('overlay').style.display='block';
+  document.getElementById('addseg-sheet').style.display='block';
+}
+function confirmAddSeg(){
+  const z=S.zones.find(x=>x.id===selId);
+  if(!z) return;
+  const icon=selPickIcon;
+  const crop=getCrop(icon);
+  const lastEnd=(z.segs||[]).length?z.segs[z.segs.length-1].end:0;
+  if(lastEnd>=1-0.08){alert('畝がいっぱいです。区間を縮めてください。');return;}
+  z.segs.push({
+    id:S.nsid++, cropIcon:icon, cropName:crop.n,
+    start:lastEnd, end:Math.min(lastEnd+0.33,1),
+    sow:document.getElementById('as-sow').value,
+    plant:document.getElementById('as-plant').value,
+    note:document.getElementById('as-note').value.trim(),
+  });
+  save(); render();
+  renderSegChips(z);
+  document.getElementById('addseg-sheet').style.display='none';
+  // keep overlay and zone-sheet open
+}
+
+function renderPltChips(z){
+  const row=document.getElementById('zs-plt-chips');
+  row.innerHTML='';
+  (z.crops||[]).forEach(ci=>{
+    const c=getCrop(ci);
+    const chip=document.createElement('div'); chip.className='chip';
+    chip.innerHTML=`${c.i} ${c.n} <span class="xbtn" onclick="removePltCrop(${z.id},'${ci}')">✕</span>`;
+    row.appendChild(chip);
+  });
+}
+function addCropToPlanter(){
+  const z=S.zones.find(x=>x.id===selId);
+  if(!z) return;
+  if(!z.crops) z.crops=[];
+  if(!z.crops.includes(selPickIcon)) z.crops.push(selPickIcon);
+  save(); render(); renderPltChips(z);
+}
+function removePltCrop(zid,ci){
+  const z=S.zones.find(x=>x.id===zid);
+  if(z) z.crops=(z.crops||[]).filter(c=>c!==ci);
+  save(); render(); renderPltChips(z);
+}
+
+// Crop picker
+function buildCropPick(containerId, selected){
+  if(selected) selPickIcon=selected;
+  const el=document.getElementById(containerId);
+  el.innerHTML='';
+  CROPS.forEach(c=>{
+    const btn=document.createElement('button');
+    btn.className='cpick-btn'+(c.i===selPickIcon?' sel':'');
+    btn.innerHTML=`<span class="ci">${c.i}</span><span class="cn">${c.n}</span>`;
+    btn.onclick=()=>{ selPickIcon=c.i; buildCropPick(containerId,c.i); };
+    el.appendChild(btn);
+  });
+}
+
+// Zone logs
+function toggleZlSale(){ document.getElementById('zl-sale').style.display=document.getElementById('zl-type').value==='💰 販売'?'block':'none'; }
+function saveZoneLog(){
+  const z=S.zones.find(x=>x.id===selId);
+  if(!z) return;
+  const type=document.getElementById('zl-type').value;
+  const date=document.getElementById('zl-date').value||new Date().toISOString().split('T')[0];
+  const price=document.getElementById('zl-price')?.value;
+  const memo=document.getElementById('zl-memo')?.value;
+  let entry=`<div style="display:flex;justify-content:space-between;align-items:center;padding-right:34px"><span class="log-date">${date} ${type}</span>`;
+  if(type==='💰 販売'&&price) entry+=`<span class="log-price">¥${Number(price).toLocaleString()}</span>`;
+  entry+=`</div>`;
+  if(memo) entry+=`<div class="log-memo">📝 ${memo}</div>`;
+  if(!z.logs) z.logs=[];
+  z.logs.unshift(entry);
+  save(); renderZoneLogs(z); render();
+  if(document.getElementById('zl-price')) document.getElementById('zl-price').value='';
+  if(document.getElementById('zl-memo')) document.getElementById('zl-memo').value='';
+}
+function renderZoneLogs(z){
+  const el=document.getElementById('zs-logs');
+  const logs=z.logs||[];
+  el.innerHTML=logs.length?logs.map((l,i)=>`<div class="log-item">${l}<button class="log-del" onclick="delZoneLog(${z.id},${i})">✕</button></div>`).join(''):'<div class="nologs">まだ記録はありません</div>';
+}
+function delZoneLog(zid,idx){
+  const z=S.zones.find(x=>x.id===zid);
+  if(!z||!z.logs) return;
+  z.logs.splice(idx,1); save(); renderZoneLogs(z);
+}
+
+// Delete zone
+function startDelZone(){
+  const z=S.zones.find(x=>x.id===selId);
+  if(!z) return;
+  document.getElementById('zs-del-msg').textContent=`「${z.name}」を削除しますか？`;
+  document.getElementById('zs-del-confirm').style.display='flex';
+}
+function confirmDelZone(){
+  S.zones=S.zones.filter(z=>z.id!==selId);
+  selId=null; selSegId=null; selScropId=null; save(); render(); closeAllSheets();
+}
+
+// ─── Add zone ───
+function openAddZoneSheet(){
+  dismissQPop();
+  document.querySelectorAll('.sheet').forEach(s=>s.style.display='none');
+  // build crop picker
+  const el=document.getElementById('az-cpick');
+  el.innerHTML='';
+  CROPS.forEach(cr=>{
+    const btn=document.createElement('button');
+    btn.style.cssText='padding:8px 4px;border-radius:10px;border:1.5px solid var(--cd);background:#fff;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;';
+    btn.innerHTML=`<span style="font-size:1.6rem">${cr.i}</span><span style="font-size:.6rem;font-weight:700;color:var(--tp)">${cr.n}</span>`;
+    btn.onclick=()=>{
+      addStandaloneCrop(cr.i);
+      // close sheet and overlay without blur
+      document.getElementById('addzone-sheet').style.display='none';
+      document.getElementById('overlay').style.display='none';
+    };
+    el.appendChild(btn);
+  });
+  document.getElementById('overlay').style.display='block';
+  document.getElementById('addzone-sheet').style.display='block';
+}
+function quickAddZone(type){
+  // Count existing zones of this type for naming (resets when deleted)
+  // Find a unique number not already used
+  const usedNums=S.zones.filter(z=>z.type===type).map(z=>{
+    const prefix=type==='une'?'ウネ':'プランター';
+    return parseInt(z.name.replace(prefix,''))||0;
+  });
+  let num=1; while(usedNums.includes(num)) num++;
+  const name=(type==='une'?'ウネ':'プランター')+num;
+  const w=type==='une'?70:150, h=type==='une'?300:150;
+  // stagger so multiple zones don't stack on top of each other
+  const sameCount=S.zones.filter(z=>z.type===type).length;
+  const staggerX=sameCount*20, staggerY=sameCount*20;
+  const cx=Math.max(0,Math.min(S.field.w-w,Math.round(S.field.w/2-w/2)+staggerX));
+  const cy=Math.max(0,Math.min(S.field.h-h,Math.round(S.field.h/2-h/2)+staggerY));
+  S.zones.push({id:S.nzid++,type,name,x:cx,y:cy,w,h,segs:[],crops:[],logs:[]});
+  save(); render(); closeAllSheets();
+}
+
+// ─── Quick pop (long press) ───
+function showQPop(z,el){
+  dismissQPop();
+  document.querySelectorAll('.sheet').forEach(s=>s.style.display='none');
+  document.getElementById('overlay').style.display='none';
+  const rect=el.getBoundingClientRect();
+  const pop=document.createElement('div'); pop.className='qpop';
+  const cx=rect.left+rect.width/2;
+  const cy=rect.top;
+  pop.style.cssText=`left:${Math.min(Math.max(cx-114,6),window.innerWidth-234)}px;top:${Math.max(cy-230,6)}px;`;
+  const today=new Date().toISOString().split('T')[0];
+  pop.innerHTML=`<div class="qptitle">${zIcon(z)} ${z.name} に記録</div>
+    <div class="qbtns">
+      <button class="qbtn seed" onclick="qlog('🌱 種まき','${today}',${z.id})"><span class="qi">🌱</span>種まき</button>
+      <button class="qbtn plant" onclick="qlog('🏠 定植','${today}',${z.id})"><span class="qi">🏡</span>定植</button>
+      <button class="qbtn harvest" onclick="qlog('✨ 収穫','${today}',${z.id})"><span class="qi">✨</span>収穫</button>
+      <button class="qbtn sell" onclick="qlog('💰 販売','${today}',${z.id})"><span class="qi">💰</span>販売</button>
+    </div>
+    <button class="qcancel" onclick="dismissQPop()">キャンセル</button>`;
+  document.body.appendChild(pop); qpopEl=pop;
+}
+function qlog(type,date,zid){
+  const z=S.zones.find(x=>x.id===zid);
+  if(!z) return;
+  if(!z.logs) z.logs=[];
+  z.logs.unshift(`<div style="display:flex;justify-content:space-between;align-items:center"><span class="log-date">${date} ${type}</span></div>`);
+  save(); render(); dismissQPop();
+}
+function dismissQPop(){ if(qpopEl){qpopEl.remove();qpopEl=null;} }
+
+// ─── Settings ───
+function openSettings(){
+  dismissQPop();
+  document.querySelectorAll('.sheet').forEach(s=>s.style.display='none');
+  document.getElementById('cfg-w').value=S.field.w;
+  document.getElementById('cfg-h').value=S.field.h;
+  document.getElementById('overlay').style.display='block';
+  document.getElementById('settings-sheet').style.display='block';
+}
+function saveFieldSize(){
+  S.field.w=Number(document.getElementById('cfg-w').value)||500;
+  S.field.h=Number(document.getElementById('cfg-h').value)||900;
+  save(); render(); closeAllSheets();
+}
+function resetAll(){
+  if(!confirm('すべて消去しますか？')) return;
+  S.zones=[]; S.scrops=[]; S.nzid=1; S.nsid=1; S.ncrid=1;
+  save(); render(); closeAllSheets();
+}
+
+// ─── Tabs ───
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&tab==='field')||(i===1&&tab==='stats')));
+  document.getElementById('view-field').style.display=tab==='field'?'block':'none';
+  document.getElementById('fab').style.display=tab==='field'?'flex':'none';
+  document.getElementById('view-stats').style.display=tab==='stats'?'block':'none';
+  if(tab==='stats') renderStats();
+}
+
+// ─── Stats ───
+function renderStats(){
+  const el=document.getElementById('view-stats');
+  let tRev=0,tHarv=0,tSeed=0,tPlant=0;
+  const zRev={},mRev={},mHarv={};
+  S.zones.forEach(z=>{
+    (z.logs||[]).forEach(raw=>{
+      const t=typeof raw==='string'?raw:'';
+      const dm=t.match(/(\d{4}-\d{2}-\d{2})/); const mk=dm?dm[1].slice(0,7):null;
+      if(t.includes('収穫')){tHarv++;if(mk)mHarv[mk]=(mHarv[mk]||0)+1;}
+      if(t.includes('種まき')) tSeed++;
+      if(t.includes('定植')) tPlant++;
+      if(t.includes('販売')){const m=t.match(/¥([\d,]+)/);if(m){const p=parseInt(m[1].replace(',',''));tRev+=p;zRev[z.name]=(zRev[z.name]||0)+p;if(mk)mRev[mk]=(mRev[mk]||0)+p;}}
+    });
+    // seg sow/plant dates are reference only, counted via logs to avoid double-count
+  });
+  // also count scrops
+  S.scrops.forEach(sc=>{
+    // count from logs only (sow/plant fields are for reference, not double-counted)
+    (sc.logs||[]).forEach(raw=>{
+      const t=typeof raw==='string'?raw:'';
+      if(t.includes('収穫')) tHarv++;
+      if(t.includes('種まき')) tSeed++;
+      if(t.includes('定植')) tPlant++;
+    });
+  });
+  const tLogs=S.zones.reduce((s,z)=>s+(z.logs||[]).length,0)+(S.scrops.reduce((s,sc)=>s+(sc.logs||[]).length,0));
+  const tSegs=S.zones.reduce((s,z)=>s+(z.segs||[]).length,0)+S.scrops.length;
+  const tScropLogs=S.scrops.reduce((s,sc)=>s+(sc.logs||[]).length+(sc.sow?1:0)+(sc.plant?1:0),0);
+  if(tLogs===0&&tSegs===0&&tScropLogs===0){el.innerHTML=`<div class="empty-s"><span style="font-size:48px;display:block;margin-bottom:16px">📊</span>まだ記録がありません</div>`;return;}
+  const now=new Date();
+  const months=Array.from({length:6},(_,i)=>{const d=new Date(now.getFullYear(),now.getMonth()-5+i,1);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;});
+  const maxR=Math.max(...months.map(m=>mRev[m]||0),1);
+  const maxH=Math.max(...months.map(m=>mHarv[m]||0),1);
+  const topZ=Object.entries(zRev).sort((a,b)=>b[1]-a[1]).slice(0,4);
+  el.innerHTML=`
+    <div class="scard"><h3>📈 サマリー</h3><div class="sgrid">
+      <div class="sitem"><div class="snum">${S.zones.filter(z=>isUne(z)).length}</div><div class="sunit">🌾 畝数</div></div>
+      <div class="sitem"><div class="snum">${tSegs}</div><div class="sunit">📌 作付け数</div></div>
+      <div class="sitem"><div class="snum">${tHarv}</div><div class="sunit">✨ 収穫回数</div></div>
+      <div class="sitem"><div class="snum">¥${tRev.toLocaleString()}</div><div class="sunit">💰 累計売上</div></div>
+    </div></div>
+    ${months.some(m=>mRev[m])?`<div class="scard"><h3>💰 月別売上</h3><div class="mgrid">${months.map(m=>{const v=mRev[m]||0;return`<div class="mcol"><div class="mbwrap"><div class="mb" style="height:${Math.round(v/maxR*100)}%"></div></div><div class="mlbl">${m.slice(5)}月</div><div class="mval">${v?'¥'+Math.round(v/1000)+'k':'-'}</div></div>`;}).join('')}</div></div>`:''}
+    ${months.some(m=>mHarv[m])?`<div class="scard"><h3>✨ 月別収穫</h3><div class="mgrid">${months.map(m=>{const v=mHarv[m]||0;return`<div class="mcol"><div class="mbwrap"><div class="mb" style="height:${Math.round(v/maxH*100)}%;background:linear-gradient(to top,#4a8c5c,#6fcf97)"></div></div><div class="mlbl">${m.slice(5)}月</div><div class="mval">${v||'-'}</div></div>`;}).join('')}</div></div>`:''}
+    ${topZ.length?`<div class="scard"><h3>🏆 ゾーン別売上</h3>${topZ.map(([n,v])=>`<div class="bwrap"><div class="blabel"><span>${n}</span><span>¥${v.toLocaleString()}</span></div><div class="bbg"><div class="bfill gold" style="width:${Math.round(v/(topZ[0][1]||1)*100)}%"></div></div></div>`).join('')}</div>`:''}
+    <div class="scard"><h3>📋 作業内訳</h3>${[['🌱 種まき',tSeed],['🏠 定植',tPlant],['✨ 収穫',tHarv]].map(([l,v])=>`<div class="bwrap"><div class="blabel"><span>${l}</span><span>${v}回</span></div><div class="bbg"><div class="bfill" style="width:${Math.round(v/Math.max(tSeed,tPlant,tHarv,1)*100)}%"></div></div></div>`).join('')}</div>
+    <div style="height:30px"></div>`;
+  setTimeout(()=>{el.querySelectorAll('.bfill,.mb').forEach(b=>{const w=b.style.width,h=b.style.height;b.style.width='0';b.style.height='0';requestAnimationFrame(()=>{b.style.width=w;b.style.height=h;});});},50);
+}
+
+// ─── Standalone crop sheet ───
+function openScropSheet(sc){
+  const crop=getCrop(sc.icon);
+  document.getElementById('sc-title').textContent=crop.i+' '+crop.n;
+  document.getElementById('sc-sow').value=sc.sow||'';
+  document.getElementById('sc-plant').value=sc.plant||'';
+  document.getElementById('sc-note').value=sc.note||'';
+  document.getElementById('scl-date').valueAsDate=new Date();
+  document.getElementById('scl-type').value='🌱 種まき';
+  renderScropLogs(sc);
+  document.querySelectorAll('.sheet').forEach(s=>s.style.display='none');
+  document.getElementById('overlay').style.display='block';
+  document.getElementById('scrop-sheet').style.display='block';
+}
+function saveScropDetail(){
+  const sc=S.scrops.find(x=>x.id===selScropId);
+  if(!sc){ alert('作物が見つかりません'); return; }
+  sc.sow=document.getElementById('sc-sow').value;
+  sc.plant=document.getElementById('sc-plant').value;
+  sc.note=document.getElementById('sc-note').value.trim();
+  save(); render();
+}
+function saveScropLog(){
+  const sc=S.scrops.find(x=>x.id===selScropId);
+  if(!sc) return;
+  const type=document.getElementById('scl-type').value;
+  const date=document.getElementById('scl-date').value||new Date().toISOString().split('T')[0];
+  if(!sc.logs) sc.logs=[];
+  sc.logs.unshift(`<div style="display:flex;justify-content:space-between;align-items:center"><span class="log-date">${date} ${type}</span></div>`);
+  save(); renderScropLogs(sc);
+}
+function renderScropLogs(sc){
+  const el=document.getElementById('sc-logs');
+  const logs=sc.logs||[];
+  el.innerHTML=logs.length
+    ?logs.map((l,i)=>`<div class="log-item">${l}<button class="log-del" onclick="delScropLog(${sc.id},${i})">✕</button></div>`).join('')
+    :'<div class="nologs">まだ記録はありません</div>';
+}
+function delScropLog(scid,idx){
+  const sc=S.scrops.find(x=>x.id===scid);
+  if(!sc||!sc.logs) return;
+  sc.logs.splice(idx,1); save(); renderScropLogs(sc);
+}
+function delCurrentScrop(){
+  delStandaloneCrop(selScropId);
+}
+function delStandaloneCrop(id){
+  S.scrops=S.scrops.filter(s=>s.id!==id);
+  selScropId=null; save(); render(); closeAllSheets();
+}
+function addStandaloneCrop(icon){
+  const crop=getCrop(icon);
+  // stagger position so multiple crops don't overlap
+  const offset=(S.scrops.length%5)*50;
+  const row=Math.floor(S.scrops.length/5)*60;
+  S.scrops.push({id:S.ncrid++,icon,name:crop.n,x:20+offset,y:20+row});
+  save(); render();
+}
+
+// ─── Sheets ───
+function closeAllSheets(){
+  document.getElementById('overlay').style.display='none';
+  document.querySelectorAll('.sheet').forEach(s=>s.style.display='none');
+  dismissQPop();
+  // clear any stuck drag state
+  dragZ=null; rezZ=null; dragScrop=null;
+}
+function closeSheet(id){ document.getElementById(id).style.display='none'; }
+document.getElementById('field').addEventListener('pointerdown',e=>{ if(!e.target.closest('.zone')&&!e.target.closest('.scrop')){ selId=null; selSegId=null; selScropId=null; render(); } });
+
+// ─── Init ───
+render();
+</script>
+</body>
+</html>
