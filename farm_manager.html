@@ -441,6 +441,14 @@ function isCropHappy(sc){
   return false;
 }
 
+// ─── Zone tap (iPhone対応) ───
+function tapZone(zid){
+  const z=S.zones.find(x=>x.id===zid);
+  if(!z) return;
+  selId=zid; selSegId=null;
+  openZoneSheet(z); render();
+}
+
 // ─── Render ───
 function render(){
   const f=document.getElementById('field');
@@ -452,6 +460,7 @@ function render(){
     el.className='zone '+(isUne(z)?'une':'planter')+(z.id===selId?' selected':'')+(happy?' happy':'');
     el.style.cssText=`left:${z.x}px;top:${z.y}px;width:${z.w}px;height:${z.h}px;`;
     el.dataset.id=z.id;
+    el.setAttribute('onclick',`tapZone(${z.id})`);
 
     const lbl=document.createElement('div');
     lbl.className='zlbl';
