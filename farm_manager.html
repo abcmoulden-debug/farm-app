@@ -583,8 +583,17 @@ function render(){
     el.addEventListener('pointerup',()=>{
       // handled by document-level pointerup
     });
+    // Use local move flag per zone for reliable tap detection
+    let zoneMoved=false;
+    el.addEventListener('pointerdown',e=>{
+      if(e.target.closest('.srh')) return;
+      zoneMoved=false;
+    });
+    el.addEventListener('pointermove',e=>{
+      if(Math.abs(e.clientX-mdX)>6||Math.abs(e.clientY-mdY)>6) zoneMoved=true;
+    });
     el.addEventListener('click',e=>{
-      if(didMove) return;
+      if(zoneMoved) return;
       if(e.target.closest('.seg')) return;
       selId=z.id; selSegId=null;
       openZoneSheet(z); render();
@@ -593,11 +602,12 @@ function render(){
     // Long press → quick log
     let pressT=null;
     el.addEventListener('pointerdown',e=>{
+      if(e.target.closest('.srh')) return;
       if(pressT) clearTimeout(pressT);
-      pressT=setTimeout(()=>{ if(!didMove){ showQPop(z,el); pressT=null; }},1200);
+      pressT=setTimeout(()=>{ if(!zoneMoved){ showQPop(z,el); pressT=null; }},1200);
     });
     el.addEventListener('pointerup',()=>{ if(pressT){clearTimeout(pressT);pressT=null;} });
-    el.addEventListener('pointermove',()=>{ if(pressT&&didMove){clearTimeout(pressT);pressT=null;} });
+    el.addEventListener('pointermove',()=>{ if(pressT&&zoneMoved){clearTimeout(pressT);pressT=null;} });
 
     f.appendChild(el);
 
