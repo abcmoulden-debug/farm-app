@@ -550,76 +550,51 @@ function render(){
     const rh=document.createElement('div'); rh.className='zrh'; rh.textContent='⤡';
     el.appendChild(rh);
 
-    // Zone drag / resize
+    // Zone: 全イベントを1つのpointerdownにまとめる
+    let zoneMoved=false; let zoneDownT=0; let pressT=null;
     el.addEventListener('pointerdown',e=>{
-      if(e.target.closest('.srh')) return;
-      mdX=e.clientX; mdY=e.clientY; didMove=false;
+      if(e.target.closest('.srh')||e.target.closest('.seg')) return;
       e.stopPropagation();
+      mdX=e.clientX; mdY=e.clientY;
+      zoneMoved=false; zoneDownT=Date.now();
+      if(pressT) clearTimeout(pressT);
+      pressT=setTimeout(()=>{ if(!zoneMoved){ showQPop(z,el); pressT=null; }},1200);
       if(e.target===rh){
         rezZ=z; rezSX=e.clientX; rezSY=e.clientY; rezOW=z.w; rezOH=z.h;
-        el.setPointerCapture(e.pointerId);
-      } else if(!e.target.closest('.seg')){
+      } else {
         dragZ=z;
         const rect=document.getElementById('field').getBoundingClientRect();
         dragOX=e.clientX-rect.left-z.x; dragOY=e.clientY-rect.top-z.y;
-        el.setPointerCapture(e.pointerId);
       }
+      el.setPointerCapture(e.pointerId);
     });
     el.addEventListener('pointermove',e=>{
-      const c=e;
-      if(Math.abs(c.clientX-mdX)>4||Math.abs(c.clientY-mdY)>4) didMove=true;
+      if(Math.abs(e.clientX-mdX)>5||Math.abs(e.clientY-mdY)>5){
+        zoneMoved=true;
+        if(pressT){clearTimeout(pressT);pressT=null;}
+      }
       const rect=document.getElementById('field').getBoundingClientRect();
       if(dragZ&&dragZ.id===z.id){
-        z.x=Math.max(0,Math.min(S.field.w-z.w,c.clientX-rect.left-dragOX));
-        z.y=Math.max(0,Math.min(S.field.h-z.h,c.clientY-rect.top-dragOY));
+        z.x=Math.max(0,Math.min(S.field.w-z.w,e.clientX-rect.left-dragOX));
+        z.y=Math.max(0,Math.min(S.field.h-z.h,e.clientY-rect.top-dragOY));
         render();
       }
       if(rezZ&&rezZ.id===z.id){
-        z.w=Math.max(40,Math.min(S.field.w-z.x,rezOW+(c.clientX-rezSX)));
-        z.h=Math.max(40,Math.min(S.field.h-z.y,rezOH+(c.clientY-rezSY)));
+        z.w=Math.max(40,Math.min(S.field.w-z.x,rezOW+(e.clientX-rezSX)));
+        z.h=Math.max(40,Math.min(S.field.h-z.y,rezOH+(e.clientY-rezSY)));
         render();
       }
     });
-    el.addEventListener('pointerup',()=>{
-      // handled by document-level pointerup
-    });
-    // タップ検出: pointerup で判定（iPhoneのclickイベント問題を回避）
-    let zoneMoved=false; let zoneDownT=0;
-    el.addEventListener('pointerdown',e=>{
-      if(e.target.closest('.srh')||e.target.closest('.seg')) return;
-      zoneMoved=false; zoneDownT=Date.now();
-    });
-    el.addEventListener('pointermove',e=>{
-      if(Math.abs(e.clientX-mdX)>6||Math.abs(e.clientY-mdY)>6) zoneMoved=true;
-    });
     el.addEventListener('pointerup',e=>{
-      if(e.target.closest('.srh')||e.target.closest('.seg')) return;
-      const elapsed=Date.now()-zoneDownT;
-      if(!zoneMoved && elapsed<800){
-        selId=z.id; selSegId=null;
-        openZoneSheet(z); render();
+      if(pressT){clearTimeout(pressT);pressT=null;}
+      if(!zoneMoved && e.target!==rh && !e.target.closest('.seg')){
+        const elapsed=Date.now()-zoneDownT;
+        if(elapsed<1000){
+          selId=z.id; selSegId=null;
+          openZoneSheet(z); render();
+        }
       }
     });
-    // iPhoneのSafari用フォールバック
-    el.addEventListener('touchend',e=>{
-      if(e.target.closest('.srh')||e.target.closest('.seg')) return;
-      const elapsed=Date.now()-zoneDownT;
-      if(!zoneMoved && elapsed<800){
-        e.preventDefault();
-        selId=z.id; selSegId=null;
-        openZoneSheet(z); render();
-      }
-    },{passive:false});
-
-    // Long press → quick log
-    let pressT=null;
-    el.addEventListener('pointerdown',e=>{
-      if(e.target.closest('.srh')||e.target.closest('.seg')) return;
-      if(pressT) clearTimeout(pressT);
-      pressT=setTimeout(()=>{ if(!zoneMoved){ showQPop(z,el); pressT=null; }},1200);
-    });
-    el.addEventListener('pointerup',()=>{ if(pressT){clearTimeout(pressT);pressT=null;} });
-    el.addEventListener('pointermove',()=>{ if(pressT&&zoneMoved){clearTimeout(pressT);pressT=null;} });
 
     f.appendChild(el);
 
