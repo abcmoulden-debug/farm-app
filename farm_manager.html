@@ -594,7 +594,7 @@ function render(){
     let pressT=null;
     el.addEventListener('pointerdown',e=>{
       if(pressT) clearTimeout(pressT);
-      pressT=setTimeout(()=>{ if(!didMove){ showQPop(z,el); pressT=null; }},600);
+      pressT=setTimeout(()=>{ if(!didMove){ showQPop(z,el); pressT=null; }},900);
     });
     el.addEventListener('pointerup',()=>{ if(pressT){clearTimeout(pressT);pressT=null;} });
     el.addEventListener('pointermove',()=>{ if(pressT&&didMove){clearTimeout(pressT);pressT=null;} });
