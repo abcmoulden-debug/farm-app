@@ -1156,8 +1156,7 @@ function closeAllSheets(){
 function closeSheet(id){ document.getElementById(id).style.display='none'; }
 document.getElementById('field').addEventListener('pointerdown',e=>{ if(!e.target.closest('.zone')&&!e.target.closest('.scrop')){ selId=null; selSegId=null; selScropId=null; render(); } });
 document.getElementById('view-field').addEventListener('touchmove',e=>{
-  // ゾーンや作物をドラッグ中はスクロールを止める
-  if(dragZ||rezZ||dragScrop) e.preventDefault();
+  e.preventDefault(); // 常にスクロールを止める（ドラッグ操作優先）
 },{passive:false});
 
 // ─── Init ───
