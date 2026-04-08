@@ -33,7 +33,7 @@ header{position:fixed;top:0;width:100%;height:var(--hh);z-index:10000;background
 .tab.active{color:var(--ga);border-bottom-color:var(--ga)}
 
 /* Field view */
-#view-field{position:absolute;top:calc(var(--hh) + var(--th));bottom:0;left:0;right:0;overflow:auto;background:var(--sd);padding:24px 16px 80px;text-align:center;-webkit-overflow-scrolling:touch}
+#view-field{position:absolute;top:calc(var(--hh) + var(--th));bottom:0;left:0;right:0;overflow:auto;background:var(--sd);padding:24px 16px 80px;text-align:center;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
 #field{background:var(--sm);display:inline-block;position:relative;border:3px solid var(--sl);border-radius:16px;margin:0 auto;box-shadow:0 0 0 8px rgba(93,58,26,.3),0 20px 60px rgba(0,0,0,.6)}
 
 /* Stats view */
@@ -1155,6 +1155,10 @@ function closeAllSheets(){
 }
 function closeSheet(id){ document.getElementById(id).style.display='none'; }
 document.getElementById('field').addEventListener('pointerdown',e=>{ if(!e.target.closest('.zone')&&!e.target.closest('.scrop')){ selId=null; selSegId=null; selScropId=null; render(); } });
+document.getElementById('view-field').addEventListener('touchmove',e=>{
+  // ゾーンや作物をドラッグ中はスクロールを止める
+  if(dragZ||rezZ||dragScrop) e.preventDefault();
+},{passive:false});
 
 // ─── Init ───
 render();
