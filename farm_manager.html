@@ -33,7 +33,7 @@ header{position:fixed;top:0;width:100%;height:var(--hh);z-index:10000;background
 .tab.active{color:var(--ga);border-bottom-color:var(--ga)}
 
 /* Field view */
-#view-field{position:absolute;top:calc(var(--hh) + var(--th));bottom:0;left:0;right:0;overflow:auto;background:var(--sd);padding:24px 16px 80px;text-align:center;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+#view-field{position:absolute;top:calc(var(--hh) + var(--th));bottom:0;left:0;right:0;overflow:hidden;background:var(--sd);padding:24px 16px 80px;text-align:center;touch-action:none}
 #field{background:var(--sm);display:inline-block;position:relative;border:3px solid var(--sl);border-radius:16px;margin:0 auto;box-shadow:0 0 0 8px rgba(93,58,26,.3),0 20px 60px rgba(0,0,0,.6)}
 
 /* Stats view */
@@ -579,9 +579,10 @@ function render(){
       el.setPointerCapture(e.pointerId);
     });
     el.addEventListener('pointermove',e=>{
-      if(Math.abs(e.clientX-mdX)>5||Math.abs(e.clientY-mdY)>5){
+      if(Math.abs(e.clientX-mdX)>3||Math.abs(e.clientY-mdY)>3){
         zoneMoved=true;
         if(pressT){clearTimeout(pressT);pressT=null;}
+        dismissQPop();
       }
       const rect=document.getElementById('field').getBoundingClientRect();
       if(dragZ&&dragZ.id===z.id){
