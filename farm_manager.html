@@ -67,11 +67,8 @@ header{position:fixed;top:0;width:100%;height:var(--hh);z-index:10000;background
 @keyframes cropHappy{0%,100%{filter:drop-shadow(0 3px 4px rgba(0,0,0,.4))}50%{filter:drop-shadow(0 0 12px rgba(111,207,151,.9)) drop-shadow(0 3px 4px rgba(0,0,0,.4))}}
 
 /* Zones */
-.zone{position:absolute;border-radius:10px;touch-action:manipulation;user-select:none;cursor:pointer}
-.zone.une{background:rgba(139,195,74,.18);border:2px solid #7cb342}
-.zone.planter{background:rgba(121,85,72,.18);border:2px dashed #8d6e63}
-.zone.selected.une{box-shadow:0 0 0 3px #7cb342}
-.zone.selected.planter{box-shadow:0 0 0 3px #8d6e63;border-style:solid}
+.zone{position:absolute;border-radius:10px;touch-action:manipulation;user-select:none;cursor:pointer;background:rgba(139,195,74,.18);border:2px solid #7cb342}
+.zone.selected{box-shadow:0 0 0 3px #7cb342}
 .zone.happy{animation:hpulse 1.5s ease-in-out infinite}
 @keyframes hpulse{
   0%,100%{box-shadow:0 0 0 2px rgba(111,207,151,.5),0 0 8px rgba(111,207,151,.2)}
@@ -86,7 +83,7 @@ header{position:fixed;top:0;width:100%;height:var(--hh);z-index:10000;background
   100%{opacity:0;transform:translateY(-22px) scale(.7)}
 }
 .zlbl{position:absolute;top:0;left:0;right:0;height:20px;font-size:.65rem;font-weight:700;padding:2px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#33691e;pointer-events:none}
-.zone.planter .zlbl{color:#4e342e}
+
 .zrh{position:absolute;right:0;bottom:0;width:18px;height:18px;background:rgba(0,0,0,.3);cursor:se-resize;border-radius:3px 0 9px 0;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;touch-action:none}
 
 /* Segments */
@@ -99,10 +96,6 @@ header{position:fixed;top:0;width:100%;height:var(--hh);z-index:10000;background
 .seg-date{font-size:.55rem;color:#5c4033;pointer-events:none}
 /* resize handle at bottom of segment */
 .srh{position:absolute;bottom:0;left:0;right:0;height:7px;background:rgba(0,0,0,.2);cursor:s-resize;touch-action:none;border-radius:0 0 3px 3px}
-
-/* Planter chips */
-.pchips{position:absolute;top:22px;left:0;right:0;bottom:0;padding:3px;display:flex;flex-wrap:wrap;gap:2px;align-content:flex-start;overflow:hidden}
-.pchip{background:rgba(255,255,255,.82);border-radius:3px;padding:1px 5px;font-size:.68rem;white-space:nowrap}
 
 /* FAB */
 #fab{position:fixed;bottom:24px;right:20px;width:56px;height:56px;background:linear-gradient(135deg,var(--gl),var(--gm));border-radius:50%;border:none;font-size:28px;color:white;cursor:pointer;z-index:9000;box-shadow:0 4px 20px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;transition:transform .15s}
@@ -183,7 +176,7 @@ header{position:fixed;top:0;width:100%;height:var(--hh);z-index:10000;background
 </div>
 <div id="view-stats"></div>
 
-<button id="fab" onclick="openAddZoneSheet()" title="ウネ・プランターを追加">＋</button>
+<button id="fab" onclick="openAddZoneSheet()" title="ゾーンを追加">＋</button>
 
 <div id="overlay" class="overlay" onclick="closeAllSheets()"></div>
 
@@ -216,7 +209,7 @@ header{position:fixed;top:0;width:100%;height:var(--hh);z-index:10000;background
   <button class="btnp btnn" style="margin-top:8px" onclick="closeAllSheets()">とじる</button>
 </div>
 
-<!-- ① ウネ/プランター詳細シート -->
+<!-- ① ゾーン詳細シート -->
 <div id="zone-sheet" class="sheet">
   <div class="shandle"></div>
   <div class="stitle" id="zs-title"></div>
@@ -264,14 +257,7 @@ header{position:fixed;top:0;width:100%;height:var(--hh);z-index:10000;background
     <button class="btnp btnd" style="margin-top:8px" onclick="startDelZone()">🗑 この畝を削除</button>
   </div>
 
-  <!-- Planter area -->
-  <div id="zs-plt" style="display:none">
-    <div class="slbl">配置中の作物</div>
-    <div class="chip-row" id="zs-plt-chips"></div>
-    <div class="cpick" id="zs-plt-cpick"></div>
-    <button class="btnp" style="padding:13px;font-size:14px;margin-top:0;margin-bottom:10px;background:linear-gradient(135deg,#558b2f,#33691e)" onclick="addCropToPlanter()">＋ 作物を追加</button>
-    <button class="btnp btnd" style="margin-top:4px" onclick="startDelZone()">🗑 このプランターを削除</button>
-  </div>
+
 
   <div id="zs-del-confirm" style="display:none;flex-direction:column;background:#fbe9e7;border:1px solid #ef9a9a;border-radius:10px;padding:10px 13px;margin-top:8px">
     <div style="font-size:.85rem;margin-bottom:8px" id="zs-del-msg"></div>
@@ -302,10 +288,7 @@ header{position:fixed;top:0;width:100%;height:var(--hh);z-index:10000;background
 <div id="addzone-sheet" class="sheet" style="z-index:22000">
   <div class="shandle"></div>
   <div class="stitle">追加するものを選んでください</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-    <button onclick="quickAddZone('une')" style="padding:20px;border-radius:14px;border:2px solid #7cb342;background:rgba(139,195,74,.12);font-size:13px;font-weight:900;cursor:pointer;font-family:inherit;color:#33691e;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-size:2rem">🌾</span>ウネ</button>
-    <button onclick="quickAddZone('planter')" style="padding:20px;border-radius:14px;border:2px solid #8d6e63;background:rgba(121,85,72,.12);font-size:13px;font-weight:900;cursor:pointer;font-family:inherit;color:#4e342e;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-size:2rem">🪴</span>プランター</button>
-  </div>
+  <button onclick="quickAddZone('une')" style="width:100%;padding:20px;border-radius:14px;border:2px solid #7cb342;background:rgba(139,195,74,.12);font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;color:#33691e;display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:14px"><span style="font-size:2.5rem">🌾</span>ゾーンを追加</button>
   <div class="slbl" style="margin-top:4px">畝なしで直接置く</div>
   <div id="az-cpick" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px"></div>
   <button class="btnp btnn" onclick="closeAllSheets()">キャンセル</button>
@@ -343,25 +326,6 @@ const CROPS=[
   {i:'🥦',n:'ブロッコリー',days:90},
 ];
 
-// 種まき日から収穫予定日までの残り日数を計算
-function calcDaysLeft(sowDate, cropIcon){
-  if(!sowDate) return null;
-  const crop=getCrop(cropIcon);
-  if(!crop.days) return null;
-  const sow=new Date(sowDate);
-  const harvest=new Date(sow.getTime()+crop.days*86400000);
-  const today=new Date();
-  today.setHours(0,0,0,0);
-  const diff=Math.round((harvest-today)/86400000);
-  return diff;
-}
-function daysLabel(diff){
-  if(diff===null) return null;
-  if(diff<0) return {txt:'収穫時期すぎ',color:'#e74c3c'};
-  if(diff===0) return {txt:'今日収穫！',color:'#e67e22'};
-  if(diff<=7) return {txt:`あと${diff}日`,color:'#e67e22'};
-  return {txt:`あと${diff}日`,color:'#27ae60'};
-}
 const CP_PAIRS=[['🍅','🧄'],['🍅','🥕'],['🍆','🫛'],['🥒','🧅'],['🌽','🫛'],['🥦','🧄'],['🫑','🧄']];
 const BP={};
 CP_PAIRS.forEach(([a,b])=>{if(!BP[a])BP[a]=[];if(!BP[b])BP[b]=[];BP[a].push(b);BP[b].push(a);});
@@ -383,9 +347,29 @@ if(!S.ncrid) S.ncrid=1;
 if(!S.nsid) S.nsid=1;
 if(!S.nzid) S.nzid=1;
 function save(){localStorage.setItem(SK,JSON.stringify(S));}
-function isUne(z){return z.type==='une';}
-function zIcon(z){return z.type==='une'?'🌾':'🪴';}
+function isUne(z){return true;} // 全ゾーン統一
+function zIcon(z){return '🌾';}
 function getCrop(icon){return CROPS.find(c=>c.i===icon)||{i:icon,n:icon};}
+
+// 種まき日から収穫予定日までの残り日数を計算
+function calcDaysLeft(sowDate, cropIcon){
+  if(!sowDate) return null;
+  const crop=getCrop(cropIcon);
+  if(!crop.days) return null;
+  const sow=new Date(sowDate);
+  const harvest=new Date(sow.getTime()+crop.days*86400000);
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  const diff=Math.round((harvest-today)/86400000);
+  return diff;
+}
+function daysLabel(diff){
+  if(diff===null) return null;
+  if(diff<0) return {txt:'収穫時期すぎ',color:'#e74c3c'};
+  if(diff===0) return {txt:'今日収穫！',color:'#e67e22'};
+  if(diff<=7) return {txt:`あと${diff}日`,color:'#e67e22'};
+  return {txt:`あと${diff}日`,color:'#27ae60'};
+}
 
 // ─── Drag state ───
 let dragZ=null,rezZ=null;
@@ -457,7 +441,7 @@ function render(){
   S.zones.forEach((z,zi)=>{
     const el=document.createElement('div');
     const happy=isHappy(zi);
-    el.className='zone '+(isUne(z)?'une':'planter')+(z.id===selId?' selected':'')+(happy?' happy':'');
+    el.className='zone une'+(z.id===selId?' selected':'')+(happy?' happy':'');
     el.style.cssText=`left:${z.x}px;top:${z.y}px;width:${z.w}px;height:${z.h}px;`;
     el.dataset.id=z.id;
     el.setAttribute('onclick',`tapZone(${z.id})`);
@@ -764,19 +748,12 @@ function openZoneSheet(z){
   // close other sheets first, then setup content
   document.querySelectorAll('.sheet').forEach(s=>s.style.display='none');
 
-  document.getElementById('zs-une').style.display=isUne(z)?'block':'none';
-  document.getElementById('zs-plt').style.display=isUne(z)?'none':'block';
-
-  if(isUne(z)){
-    renderSegChips(z);
-    document.getElementById('zl-date').valueAsDate=new Date();
-    document.getElementById('zl-type').value='🌱 種まき';
-    document.getElementById('zl-sale').style.display='none';
-    renderZoneLogs(z);
-  } else {
-    renderPltChips(z);
-    selPickIcon=CROPS[0].i; buildCropPick('zs-plt-cpick',CROPS[0].i);
-  }
+  document.getElementById('zs-une').style.display='block';
+  renderSegChips(z);
+  document.getElementById('zl-date').valueAsDate=new Date();
+  document.getElementById('zl-type').value='🌱 種まき';
+  document.getElementById('zl-sale').style.display='none';
+  renderZoneLogs(z);
 
   document.getElementById('overlay').style.display='block';
   document.getElementById('zone-sheet').style.display='block';
@@ -858,28 +835,7 @@ function confirmAddSeg(){
   // keep overlay and zone-sheet open
 }
 
-function renderPltChips(z){
-  const row=document.getElementById('zs-plt-chips');
-  row.innerHTML='';
-  (z.crops||[]).forEach(ci=>{
-    const c=getCrop(ci);
-    const chip=document.createElement('div'); chip.className='chip';
-    chip.innerHTML=`${c.i} ${c.n} <span class="xbtn" onclick="removePltCrop(${z.id},'${ci}')">✕</span>`;
-    row.appendChild(chip);
-  });
-}
-function addCropToPlanter(){
-  const z=S.zones.find(x=>x.id===selId);
-  if(!z) return;
-  if(!z.crops) z.crops=[];
-  if(!z.crops.includes(selPickIcon)) z.crops.push(selPickIcon);
-  save(); render(); renderPltChips(z);
-}
-function removePltCrop(zid,ci){
-  const z=S.zones.find(x=>x.id===zid);
-  if(z) z.crops=(z.crops||[]).filter(c=>c!==ci);
-  save(); render(); renderPltChips(z);
-}
+
 
 // Crop picker
 function buildCropPick(containerId, selected){
@@ -960,21 +916,16 @@ function openAddZoneSheet(){
   document.getElementById('addzone-sheet').style.display='block';
 }
 function quickAddZone(type){
-  // Count existing zones of this type for naming (resets when deleted)
-  // Find a unique number not already used
-  const usedNums=S.zones.filter(z=>z.type===type).map(z=>{
-    const prefix=type==='une'?'ウネ':'プランター';
-    return parseInt(z.name.replace(prefix,''))||0;
-  });
+  const usedNums=S.zones.map(z=>parseInt(z.name.replace('ウネ',''))||0);
   let num=1; while(usedNums.includes(num)) num++;
-  const name=(type==='une'?'ウネ':'プランター')+num;
-  const w=type==='une'?70:150, h=type==='une'?300:150;
+  const name='ウネ'+num;
+  const w=70, h=300;
   // stagger so multiple zones don't stack on top of each other
   const sameCount=S.zones.filter(z=>z.type===type).length;
   const staggerX=sameCount*20, staggerY=sameCount*20;
   const cx=Math.max(0,Math.min(S.field.w-w,Math.round(S.field.w/2-w/2)+staggerX));
   const cy=Math.max(0,Math.min(S.field.h-h,Math.round(S.field.h/2-h/2)+staggerY));
-  S.zones.push({id:S.nzid++,type,name,x:cx,y:cy,w,h,segs:[],crops:[],logs:[]});
+  S.zones.push({id:S.nzid++,type:'une',name,x:cx,y:cy,w,h,segs:[],crops:[],logs:[]});
   save(); render(); closeAllSheets();
 }
 
@@ -989,13 +940,14 @@ function showQPop(z,el){
   const cy=rect.top;
   pop.style.cssText=`left:${Math.min(Math.max(cx-114,6),window.innerWidth-234)}px;top:${Math.max(cy-230,6)}px;`;
   const today=new Date().toISOString().split('T')[0];
-  pop.innerHTML=`<div class="qptitle">${zIcon(z)} ${z.name} に記録</div>
+  pop.innerHTML=`<div class="qptitle">${zIcon(z)} ${z.name}</div>
     <div class="qbtns">
       <button class="qbtn seed" onclick="qlog('🌱 種まき','${today}',${z.id})"><span class="qi">🌱</span>種まき</button>
       <button class="qbtn plant" onclick="qlog('🏠 定植','${today}',${z.id})"><span class="qi">🏡</span>定植</button>
       <button class="qbtn harvest" onclick="qlog('✨ 収穫','${today}',${z.id})"><span class="qi">✨</span>収穫</button>
       <button class="qbtn sell" onclick="qlog('💰 販売','${today}',${z.id})"><span class="qi">💰</span>販売</button>
     </div>
+    <button class="qbtn" style="background:#e8eaf6;color:#3949ab;width:100%;margin-top:7px" onclick="copyZone(${z.id});dismissQPop()"><span class="qi">📋</span>コピー</button>
     <button class="qcancel" onclick="dismissQPop()">キャンセル</button>`;
   document.body.appendChild(pop); qpopEl=pop;
 }
@@ -1007,6 +959,24 @@ function qlog(type,date,zid){
   save(); render(); dismissQPop();
 }
 function dismissQPop(){ if(qpopEl){qpopEl.remove();qpopEl=null;} }
+function copyZone(zid){
+  const z=S.zones.find(x=>x.id===zid);
+  if(!z) return;
+  const copy=JSON.parse(JSON.stringify(z));
+  copy.id=S.nzid++;
+  // Assign new IDs to copied segs
+  (copy.segs||[]).forEach(s=>{ s.id=S.nsid++; });
+  // Find unique name
+  const usedNums=S.zones.map(x=>parseInt(x.name.replace('ウネ',''))||0);
+  let num=1; while(usedNums.includes(num)) num++;
+  copy.name='ウネ'+num;
+  copy.type='une';
+  // Place next to original
+  copy.x=Math.min(S.field.w-z.w, z.x+z.w+10);
+  copy.y=z.y;
+  S.zones.push(copy);
+  save(); render();
+}
 
 // ─── Settings ───
 function openSettings(){
