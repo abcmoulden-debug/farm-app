@@ -84,7 +84,8 @@ header{position:fixed;top:0;width:100%;height:var(--hh);z-index:10000;background
 }
 .zlbl{position:absolute;top:0;left:0;right:0;height:20px;font-size:.65rem;font-weight:700;padding:2px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#33691e;pointer-events:none}
 
-.zrh{position:absolute;right:0;bottom:0;width:18px;height:18px;background:rgba(0,0,0,.3);cursor:se-resize;border-radius:3px 0 9px 0;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;touch-action:none}
+.zrh{position:absolute;right:0;bottom:0;width:18px;height:18px;background:rgba(0,0,0,.3);cursor:se-resize;border-radius:3px 0 9px 0;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;touch-action:none;opacity:0;transition:opacity .2s}
+body.edit-mode .zrh{opacity:1}
 
 /* Segments */
 .swrap{position:absolute;top:20px;left:0;right:0;bottom:0;overflow:hidden}
@@ -142,6 +143,16 @@ header{position:fixed;top:0;width:100%;height:var(--hh);z-index:10000;background
 .qbtn.sell{background:#fce4ec;color:#c62828}
 .qcancel{width:100%;margin-top:7px;padding:9px;border-radius:9px;border:none;background:rgba(0,0,0,.07);font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;color:var(--mu)}
 
+/* Edit mode */
+#edit-toolbar{display:none;position:fixed;bottom:90px;left:16px;z-index:8000;flex-direction:column;gap:8px;align-items:flex-start}
+#edit-toolbar.active{display:flex}
+.etbtn{height:40px;padding:0 14px;border-radius:20px;border:none;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 3px 12px rgba(0,0,0,.25)}
+.etbtn.snap-on{background:#4a8c5c;color:#fff}
+.etbtn.snap-off{background:rgba(255,255,255,.15);color:#fff}
+body.edit-mode #field{outline:2px dashed rgba(111,207,151,.5)}
+body.edit-mode .zone{cursor:grab}
+body.edit-mode .hbtn#edit-btn{background:rgba(111,207,151,.3);color:#6fcf97}
+
 /* Crop picker grid */
 .cpick{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
 .cpick-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:10px;border:2px solid transparent;background:#fff;cursor:pointer;font-family:inherit}
@@ -159,6 +170,7 @@ header{position:fixed;top:0;width:100%;height:var(--hh);z-index:10000;background
     <div class="htxt">自然農ログ <span>v31</span></div>
   </div>
   <div class="hbtns">
+    <button class="hbtn" id="edit-btn" onclick="toggleEditMode()">✏️ 編集</button>
     <button class="hbtn" onclick="openSettings()">⚙️ 設定</button>
   </div>
 </header>
@@ -177,6 +189,10 @@ header{position:fixed;top:0;width:100%;height:var(--hh);z-index:10000;background
 <div id="view-stats"></div>
 
 <button id="fab" onclick="openAddZoneSheet()" title="ゾーンを追加">＋</button>
+
+<div id="edit-toolbar">
+  <button class="etbtn snap-on" id="snap-btn" onclick="toggleSnap()">🧲 スナップON</button>
+</div>
 
 <div id="overlay" class="overlay" onclick="closeAllSheets()"></div>
 
@@ -373,9 +389,10 @@ function daysLabel(diff){
 
 // ─── Drag state ───
 let dragZ=null,rezZ=null;
+let editMode=false, snapMode=true;
 let dragOX=0,dragOY=0,rezSX=0,rezSY=0,rezOW=0,rezOH=0;
 // rezSegStart0/End0/NextStart0 removed - seg resize uses rh._startY etc instead
-let mdX=0,mdY=0,didMove=false;
+let mdX=0,mdY=0;
 let selId=null,selSegId=null,selScropId=null;
 let dragScrop=null,dragScropOX=0,dragScropOY=0;
 let qpopEl=null;
@@ -426,7 +443,9 @@ function isCropHappy(sc){
 }
 
 // ─── Zone tap (iPhone対応) ───
+let justDragged=false;
 function tapZone(zid){
+  if(justDragged) return; // ドラッグ後はシートを開かない（次のpointerdownでリセット）
   const z=S.zones.find(x=>x.id===zid);
   if(!z) return;
   selId=zid; selSegId=null;
@@ -530,14 +549,6 @@ function render(){
         sw.appendChild(segEl);
       });
       el.appendChild(sw);
-    } else {
-      const cc=document.createElement('div'); cc.className='pchips';
-      (z.crops||[]).forEach(ci=>{
-        const c=getCrop(ci);
-        const chip=document.createElement('div'); chip.className='pchip';
-        chip.textContent=c.i+' '+c.n; cc.appendChild(chip);
-      });
-      el.appendChild(cc);
     }
 
     const rh=document.createElement('div'); rh.className='zrh'; rh.textContent='⤡';
@@ -553,9 +564,9 @@ function render(){
       zoneMoved=false; zoneDownT=Date.now();
       if(pressT) clearTimeout(pressT);
       pressT=setTimeout(()=>{ if(!zoneMoved){ showQPop(z,el); pressT=null; }},1200);
-      if(e.target===rh){
+      if(e.target===rh && editMode){
         rezZ=z; rezSX=e.clientX; rezSY=e.clientY; rezOW=z.w; rezOH=z.h;
-      } else {
+      } else if(editMode){
         dragZ=z;
         const rect=document.getElementById('field').getBoundingClientRect();
         dragOX=e.clientX-rect.left-z.x; dragOY=e.clientY-rect.top-z.y;
@@ -570,11 +581,14 @@ function render(){
       }
       const rect=document.getElementById('field').getBoundingClientRect();
       if(dragZ&&dragZ.id===z.id){
-        z.x=Math.max(0,Math.min(S.field.w-z.w,e.clientX-rect.left-dragOX));
-        z.y=Math.max(0,Math.min(S.field.h-z.h,e.clientY-rect.top-dragOY));
+        let nx=Math.max(0,Math.min(S.field.w-z.w,e.clientX-rect.left-dragOX));
+        let ny=Math.max(0,Math.min(S.field.h-z.h,e.clientY-rect.top-dragOY));
+        const snapped=applySnap(nx,ny,z.w,z.h,z.id);
+        z.x=Math.max(0,Math.min(S.field.w-z.w,snapped.x));
+        z.y=Math.max(0,Math.min(S.field.h-z.h,snapped.y));
         render();
       }
-      if(rezZ&&rezZ.id===z.id){
+      if(rezZ&&rezZ.id===z.id&&editMode){
         z.w=Math.max(40,Math.min(S.field.w-z.x,rezOW+(e.clientX-rezSX)));
         z.h=Math.max(40,Math.min(S.field.h-z.y,rezOH+(e.clientY-rezSY)));
         render();
@@ -582,13 +596,7 @@ function render(){
     });
     el.addEventListener('pointerup',e=>{
       if(pressT){clearTimeout(pressT);pressT=null;}
-      if(!zoneMoved && e.target!==rh && !e.target.closest('.seg')){
-        const elapsed=Date.now()-zoneDownT;
-        if(elapsed<1000){
-          selId=z.id; selSegId=null;
-          openZoneSheet(z); render();
-        }
-      }
+      // sheet opening handled by onclick (tapZone) attribute
     });
 
     f.appendChild(el);
@@ -726,13 +734,12 @@ document.addEventListener('pointerup',()=>{
   const wasDragging=dragZ||rezZ||dragScrop;
   if(dragZ||rezZ) save();
   if(dragScrop) save();
+  if(dragZ||rezZ) justDragged=true; // ゾーンドラッグ後はタップを無視
   dragZ=null; rezZ=null; dragScrop=null;
   // Re-render after drag to refresh companion glow
   if(wasDragging) render();
 });
-document.addEventListener('pointerdown',()=>{
-  didMove=false; // reset global move flag on every new touch
-});
+
 
 // ─── Zone sheet ───
 function openZoneSheet(z){
@@ -1004,6 +1011,8 @@ function switchTab(tab){
   document.getElementById('view-field').style.display=tab==='field'?'block':'none';
   document.getElementById('fab').style.display=tab==='field'?'flex':'none';
   document.getElementById('view-stats').style.display=tab==='stats'?'block':'none';
+  // exit edit mode when switching tabs
+  if(editMode){ editMode=false; document.body.classList.remove('edit-mode'); document.getElementById('edit-btn').textContent='✏️ 編集'; document.getElementById('edit-toolbar').classList.remove('active'); }
   if(tab==='stats') renderStats();
 }
 
@@ -1116,6 +1125,44 @@ function addStandaloneCrop(icon){
   save(); render();
 }
 
+// ─── Edit mode ───
+function toggleEditMode(){
+  editMode=!editMode;
+  document.body.classList.toggle('edit-mode',editMode);
+  document.getElementById('edit-btn').textContent=editMode?'✅ 完了':'✏️ 編集';
+  document.getElementById('edit-toolbar').classList.toggle('active',editMode);
+  closeAllSheets();
+  dismissQPop();
+  if(!editMode){ dragZ=null; rezZ=null; } // clear any stuck drag on exit
+}
+function toggleSnap(){
+  snapMode=!snapMode;
+  const btn=document.getElementById('snap-btn');
+  btn.textContent=snapMode?'🧲 スナップON':'🧲 スナップOFF';
+  btn.className='etbtn '+(snapMode?'snap-on':'snap-off');
+}
+function applySnap(x,y,w,h,excludeId){
+  if(!snapMode) return {x,y};
+  const THRESH=15;
+  let nx=x, ny=y;
+  for(const z of S.zones){
+    if(z.id===excludeId) continue;
+    // snap left edge to right edge of other zone
+    if(Math.abs(x-(z.x+z.w))<THRESH) nx=z.x+z.w;
+    // snap right edge to left edge
+    if(Math.abs((x+w)-z.x)<THRESH) nx=z.x-w;
+    // snap left to left
+    if(Math.abs(x-z.x)<THRESH) nx=z.x;
+    // snap top to top
+    if(Math.abs(y-z.y)<THRESH) ny=z.y;
+    // snap top to bottom
+    if(Math.abs(y-(z.y+z.h))<THRESH) ny=z.y+z.h;
+    // snap bottom to top
+    if(Math.abs((y+h)-z.y)<THRESH) ny=z.y-h;
+  }
+  return {x:nx, y:ny};
+}
+
 // ─── Sheets ───
 function closeAllSheets(){
   document.getElementById('overlay').style.display='none';
@@ -1125,6 +1172,7 @@ function closeAllSheets(){
   dragZ=null; rezZ=null; dragScrop=null;
 }
 function closeSheet(id){ document.getElementById(id).style.display='none'; }
+document.addEventListener('pointerdown',()=>{ justDragged=false; }); // 次のタッチでドラッグフラグリセット
 document.getElementById('field').addEventListener('pointerdown',e=>{ if(!e.target.closest('.zone')&&!e.target.closest('.scrop')){ selId=null; selSegId=null; selScropId=null; render(); } });
 
 
