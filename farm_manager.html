@@ -556,6 +556,16 @@ function render(){
 
     // Zone: 全イベントを1つのpointerdownにまとめる
     let zoneMoved=false; let zoneDownT=0; let pressT=null;
+    // iPhoneのタッチスクロールを完全にブロック
+    el.addEventListener('touchstart',e=>{
+      if(e.target.closest('.srh')||e.target.closest('.seg')) return;
+      e.stopPropagation();
+      if(editMode) e.preventDefault(); // 編集モード中のみスクロール完全停止
+    },{passive:false});
+    el.addEventListener('touchmove',e=>{
+      e.stopPropagation();
+      if(editMode) e.preventDefault();
+    },{passive:false});
     el.addEventListener('pointerdown',e=>{
       if(e.target.closest('.srh')||e.target.closest('.seg')) return;
       e.stopPropagation();
