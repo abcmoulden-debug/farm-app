@@ -740,6 +740,11 @@ document.addEventListener('pointerup',()=>{
   if(wasDragging) render();
 });
 
+// ─── ゾーンドラッグ中は背景スクロールを止める ───
+document.getElementById('view-field').addEventListener('touchmove', e=>{
+  if(dragZ||rezZ||dragScrop) e.preventDefault();
+}, {passive:false});
+
 
 // ─── Zone sheet ───
 function openZoneSheet(z){
