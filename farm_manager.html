@@ -1145,8 +1145,9 @@ function applySnap(x,y,w,h,excludeId){
   if(!snapMode) return {x,y};
   const THRESH=15;
   let nx=x, ny=y;
-  for(const z of S.zones){
-    if(z.id===excludeId) continue;
+  const others=S.zones.filter(z=>z.id!==excludeId);
+
+  for(const z of others){
     // snap left edge to right edge of other zone
     if(Math.abs(x-(z.x+z.w))<THRESH) nx=z.x+z.w;
     // snap right edge to left edge
@@ -1160,6 +1161,37 @@ function applySnap(x,y,w,h,excludeId){
     // snap bottom to top
     if(Math.abs((y+h)-z.y)<THRESH) ny=z.y-h;
   }
+
+  // ── 間隔スナップ: 他の2つのゾーン間の間隔と同じ間隔に吸い付く ──
+  for(let i=0;i<others.length;i++){
+    for(let j=0;j<others.length;j++){
+      if(i===j) continue;
+      const a=others[i], b=others[j];
+
+      // 横方向: aの右端とbの左端の間隔 = gap
+      const gapX=b.x-(a.x+a.w);
+      if(gapX>0){
+        // ドラッグ中のゾーンをbの右にgap間隔で置く
+        const targetX=b.x+b.w+gapX;
+        if(Math.abs(x-targetX)<THRESH) nx=targetX;
+        // ドラッグ中のゾーンをaの左にgap間隔で置く
+        const targetX2=a.x-gapX-w;
+        if(Math.abs(x-targetX2)<THRESH) nx=targetX2;
+      }
+
+      // 縦方向: aの下端とbの上端の間隔 = gap
+      const gapY=b.y-(a.y+a.h);
+      if(gapY>0){
+        // ドラッグ中のゾーンをbの下にgap間隔で置く
+        const targetY=b.y+b.h+gapY;
+        if(Math.abs(y-targetY)<THRESH) ny=targetY;
+        // ドラッグ中のゾーンをaの上にgap間隔で置く
+        const targetY2=a.y-gapY-h;
+        if(Math.abs(y-targetY2)<THRESH) ny=targetY2;
+      }
+    }
+  }
+
   return {x:nx, y:ny};
 }
 
