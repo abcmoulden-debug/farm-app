@@ -706,6 +706,9 @@ function render(){
       sc.x=Math.max(0,Math.min(S.field.w-40,e.clientX-rect.left-dragScropOX));
       sc.y=Math.max(0,Math.min(S.field.h-40,e.clientY-rect.top-dragScropOY));
       el.style.left=sc.x+'px'; el.style.top=sc.y+'px';
+      // happy-cropクラスをリアルタイム更新
+      const nowHappy=isCropHappy(sc);
+      el.classList.toggle('happy-crop', nowHappy);
       // コンパニオン線をドラッグ中にリアルタイム更新
       const svg=document.getElementById('comp-lines');
       if(svg){
@@ -980,6 +983,7 @@ function confirmDelZone(){
 // ─── Add zone ───
 function openAddZoneSheet(){
   dismissQPop();
+  document.getElementById('overlay').style.display='none';
   document.querySelectorAll('.sheet').forEach(s=>s.style.display='none');
   // build crop picker
   const el=document.getElementById('az-cpick');
@@ -991,10 +995,15 @@ function openAddZoneSheet(){
       ?`<svg width="28" height="28" viewBox="0 0 28 28">${cr.shape==='square'?`<rect x="2" y="2" width="24" height="24" rx="4" fill="${cr.color}" stroke="#1a0000" stroke-width="2"/>`:`<circle cx="14" cy="14" r="12" fill="${cr.color}" stroke="#1a0000" stroke-width="2"/>`}</svg>`
       :cr.i;
     btn.innerHTML=`<span style="font-size:1.6rem;display:flex;align-items:center">${iconHtml}</span><span style="font-size:.6rem;font-weight:700;color:var(--tp)">${cr.n}</span>`;
-    btn.onclick=()=>{
+    btn.onclick=(e)=>{
+      e.stopPropagation();
       addStandaloneCrop(cr.i);
-      document.getElementById('addzone-sheet').style.display='none';
-      document.getElementById('overlay').style.display='none';
+      // 少し待ってからシートを閉じる（iPhoneのイベント干渉を回避）
+      setTimeout(()=>{
+        document.querySelectorAll('.sheet').forEach(s=>s.style.display='none');
+        document.getElementById('overlay').style.display='none';
+        dragZ=null; rezZ=null; dragScrop=null;
+      }, 50);
     };
     el.appendChild(btn);
   });
@@ -1004,8 +1013,8 @@ function openAddZoneSheet(){
   addBtn.innerHTML=`<span style="font-size:1.6rem">＋</span><span style="font-size:.6rem;font-weight:700;color:#558b2f">作物を追加</span>`;
   addBtn.onclick=()=>openCustomCropSheet('az-cpick');
   el.appendChild(addBtn);
-  document.getElementById('overlay').style.display='block';
   document.getElementById('addzone-sheet').style.display='block';
+  document.getElementById('overlay').style.display='block';
 }
 function quickAddZone(type){
   const usedNums=S.zones.map(z=>parseInt(z.name.replace('ウネ',''))||0);
