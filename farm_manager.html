@@ -194,6 +194,36 @@ body.edit-mode .hbtn#edit-btn{background:rgba(111,207,151,.3);color:#6fcf97}
   <button class="etbtn snap-on" id="snap-btn" onclick="toggleSnap()">🧲 スナップON</button>
 </div>
 
+<!-- カスタム作物作成シート -->
+<div id="custom-crop-sheet" class="sheet" style="z-index:23000">
+  <div class="shandle"></div>
+  <div class="stitle">🌿 オリジナル作物を追加</div>
+  <div style="background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+    <div class="slbl">名前</div>
+    <input type="text" id="cc-name" class="ff" placeholder="例：ズッキーニ" maxlength="10">
+    <div class="slbl" style="margin-top:10px">形</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <button id="cc-circle-btn" onclick="setCcShape('circle')" style="padding:14px;border-radius:12px;border:2px solid #7cb342;background:rgba(139,195,74,.12);font-size:13px;font-weight:900;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg width="24" height="24"><circle cx="12" cy="12" r="10" fill="#e83030" stroke="#1a0000" stroke-width="2"/></svg>丸
+      </button>
+      <button id="cc-square-btn" onclick="setCcShape('square')" style="padding:14px;border-radius:12px;border:2px solid #ccc;background:#f5f5f5;font-size:13px;font-weight:900;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg width="24" height="24"><rect x="2" y="2" width="20" height="20" rx="4" fill="#e83030" stroke="#1a0000" stroke-width="2"/></svg>四角
+      </button>
+    </div>
+    <div class="slbl">色</div>
+    <div id="cc-colors" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
+    <div class="slbl">収穫日数（任意）</div>
+    <input type="number" id="cc-days" class="ff" placeholder="例：60" min="1" max="365">
+  </div>
+  <!-- プレビュー -->
+  <div style="text-align:center;margin-bottom:14px">
+    <div id="cc-preview" style="font-size:3rem;margin-bottom:4px"></div>
+    <div id="cc-preview-name" style="font-size:.85rem;color:var(--mu)"></div>
+  </div>
+  <button class="btnp" style="padding:13px;font-size:14px" onclick="saveCustomCrop()">✅ 追加する</button>
+  <button class="btnp btnn" style="margin-top:8px" onclick="closeAllSheets()">キャンセル</button>
+</div>
+
 <div id="overlay" class="overlay" onclick="closeAllSheets()"></div>
 
 <!-- Standalone crop detail sheet -->
@@ -322,6 +352,8 @@ body.edit-mode .hbtn#edit-btn{background:rgba(111,207,151,.3);color:#6fcf97}
   <button class="btnp" style="padding:14px" onclick="saveFieldSize()">✅ 適用する</button>
   <div class="slbl" style="margin-top:14px">危険ゾーン</div>
   <button class="btnp btnd" onclick="resetAll()">⚠️ 畑を更地にする</button>
+  <div class="slbl" style="margin-top:14px">オリジナル作物</div>
+  <div id="custom-crop-list" style="margin-bottom:8px"></div>
   <button class="btnp btnn" style="margin-top:8px" onclick="closeAllSheets()">とじる</button>
 </div>
 
@@ -356,6 +388,7 @@ function getZoneIconsSafe(z){
 
 let S=(()=>{try{const s=localStorage.getItem(SK);return s?JSON.parse(s):null;}catch{return null;}})() || {field:{w:500,h:900},zones:[],scrops:[],nzid:1,nsid:1,ncrid:1};
 if(!S.scrops) S.scrops=[];
+if(!S.customCrops) S.customCrops=[];
 if(!S.field) S.field={w:500,h:900};
 if(!S.field.w) S.field.w=500;
 if(!S.field.h) S.field.h=900;
@@ -365,7 +398,14 @@ if(!S.nzid) S.nzid=1;
 function save(){localStorage.setItem(SK,JSON.stringify(S));}
 function isUne(z){return true;} // 全ゾーン統一
 function zIcon(z){return '🌾';}
-function getCrop(icon){return CROPS.find(c=>c.i===icon)||{i:icon,n:icon};}
+function getCrop(icon){
+  return CROPS.find(c=>c.i===icon)
+    || (S.customCrops||[]).find(c=>c.i===icon)
+    || {i:icon,n:icon,days:null};
+}
+function getAllCrops(){
+  return [...CROPS,...(S.customCrops||[])];
+}
 
 // 種まき日から収穫予定日までの残り日数を計算
 function calcDaysLeft(sowDate, cropIcon){
@@ -483,7 +523,10 @@ function render(){
         const crop=getCrop(seg.cropIcon);
         const diff=calcDaysLeft(seg.sow||seg.plant,seg.cropIcon);
         const dl=daysLabel(diff);
-        segEl.innerHTML=`<div class="seg-icon">${crop.i}</div><div class="seg-name">${crop.n}</div>${seg.sow?`<div class="seg-date">🌱${seg.sow}</div>`:''}${dl?`<div class="seg-harvest" style="font-size:.55rem;font-weight:900;color:${dl.color};pointer-events:none">${dl.txt}</div>`:''}`;
+        const segIconHtml=crop.custom
+          ?`<div class="seg-icon"><svg width="28" height="28" viewBox="0 0 28 28">${crop.shape==='square'?`<rect x="2" y="2" width="24" height="24" rx="4" fill="${crop.color}" stroke="#1a0000" stroke-width="2"/>`:`<circle cx="14" cy="14" r="12" fill="${crop.color}" stroke="#1a0000" stroke-width="2"/>`}</svg></div>`
+          :`<div class="seg-icon">${crop.i}</div>`;
+        segEl.innerHTML=`${segIconHtml}<div class="seg-name">${crop.n}</div>${seg.sow?`<div class="seg-date">🌱${seg.sow}</div>`:''}${dl?`<div class="seg-harvest" style="font-size:.55rem;font-weight:900;color:${dl.color};pointer-events:none">${dl.txt}</div>`:''}`;
         const rh=document.createElement('div'); rh.className='srh';
         segEl.appendChild(rh);
         // seg resize
@@ -636,7 +679,10 @@ function render(){
     el.dataset.scid=sc.id;
     const scDiff=calcDaysLeft(sc.sow||sc.plant,sc.icon);
     const scDl=daysLabel(scDiff);
-    el.innerHTML=`<div class="scrop-icon">${crop.i}</div><div class="scrop-name">${crop.n}</div>${scDl?`<div style="font-size:.55rem;font-weight:900;color:${scDl.color};text-align:center;background:rgba(0,0,0,.5);border-radius:4px;padding:1px 4px;white-space:nowrap">${scDl.txt}</div>`:''}`;
+    const scIconHtml=crop.custom
+      ?`<div class="scrop-icon"><svg width="32" height="32" viewBox="0 0 32 32">${crop.shape==='square'?`<rect x="2" y="2" width="28" height="28" rx="6" fill="${crop.color}" stroke="#1a0000" stroke-width="2.5"/>`:`<circle cx="16" cy="16" r="14" fill="${crop.color}" stroke="#1a0000" stroke-width="2.5"/>`}</svg></div>`
+      :`<div class="scrop-icon">${crop.i}</div>`;
+    el.innerHTML=`${scIconHtml}<div class="scrop-name">${crop.n}</div>${scDl?`<div style="font-size:.55rem;font-weight:900;color:${scDl.color};text-align:center;background:rgba(0,0,0,.5);border-radius:4px;padding:1px 4px;white-space:nowrap">${scDl.txt}</div>`:''}`;
     let scMdX=0,scMdY=0,scMoved=false;
     el.addEventListener('pointerdown',e=>{
       scMdX=e.clientX; scMdY=e.clientY; scMoved=false;
@@ -660,10 +706,10 @@ function render(){
       sc.x=Math.max(0,Math.min(S.field.w-40,e.clientX-rect.left-dragScropOX));
       sc.y=Math.max(0,Math.min(S.field.h-40,e.clientY-rect.top-dragScropOY));
       el.style.left=sc.x+'px'; el.style.top=sc.y+'px';
-      // update companion lines live during drag
+      // コンパニオン線をドラッグ中にリアルタイム更新
       const svg=document.getElementById('comp-lines');
       if(svg){
-        svg.innerHTML='';
+        svg.innerHTML=''; // 残像を消す
         const items=[];
         S.zones.forEach(z=>{const icons=getZoneIconsSafe(z);if(icons.length)items.push({x:z.x+z.w/2,y:z.y+z.h/2,icons});});
         S.scrops.forEach(s=>items.push({x:s.x+18,y:s.y+18,icons:[s.icon]}));
@@ -707,6 +753,11 @@ function render(){
     svg.innerHTML='';
     svg.style.width=S.field.w+'px';
     svg.style.height=S.field.h+'px';
+    svg.style.position='absolute';
+    svg.style.top='0';
+    svg.style.left='0';
+    svg.setAttribute('width',S.field.w);
+    svg.setAttribute('height',S.field.h);
     svg.setAttribute('viewBox',`0 0 ${S.field.w} ${S.field.h}`);
     // collect all items with position + icons
     const items=[];
@@ -864,13 +915,24 @@ function buildCropPick(containerId, selected){
   if(selected) selPickIcon=selected;
   const el=document.getElementById(containerId);
   el.innerHTML='';
-  CROPS.forEach(c=>{
+  getAllCrops().forEach(c=>{
     const btn=document.createElement('button');
     btn.className='cpick-btn'+(c.i===selPickIcon?' sel':'');
-    btn.innerHTML=`<span class="ci">${c.i}</span><span class="cn">${c.n}</span>`;
+    // カスタム作物は色付き丸/四角で表示
+    const iconHtml=c.custom
+      ? `<span class="ci"><svg width="28" height="28" viewBox="0 0 28 28">${c.shape==='square'?`<rect x="2" y="2" width="24" height="24" rx="4" fill="${c.color}" stroke="#1a0000" stroke-width="2.5"/>`:`<circle cx="14" cy="14" r="12" fill="${c.color}" stroke="#1a0000" stroke-width="2.5"/>`}</svg></span>`
+      : `<span class="ci">${c.i}</span>`;
+    btn.innerHTML=`${iconHtml}<span class="cn">${c.n}</span>`;
     btn.onclick=()=>{ selPickIcon=c.i; buildCropPick(containerId,c.i); };
     el.appendChild(btn);
   });
+  // カスタム作物追加ボタン
+  const addBtn=document.createElement('button');
+  addBtn.className='cpick-btn';
+  addBtn.style.cssText='border:2px dashed var(--cd);background:transparent;color:var(--tp)';
+  addBtn.innerHTML=`<span class="ci" style="font-size:1.4rem">＋</span><span class="cn">作物を追加</span>`;
+  addBtn.onclick=()=>openCustomCropSheet(containerId);
+  el.appendChild(addBtn);
 }
 
 // Zone logs
@@ -922,18 +984,26 @@ function openAddZoneSheet(){
   // build crop picker
   const el=document.getElementById('az-cpick');
   el.innerHTML='';
-  CROPS.forEach(cr=>{
+  getAllCrops().forEach(cr=>{
     const btn=document.createElement('button');
     btn.style.cssText='padding:8px 4px;border-radius:10px;border:1.5px solid var(--cd);background:#fff;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;';
-    btn.innerHTML=`<span style="font-size:1.6rem">${cr.i}</span><span style="font-size:.6rem;font-weight:700;color:var(--tp)">${cr.n}</span>`;
+    const iconHtml=cr.custom
+      ?`<svg width="28" height="28" viewBox="0 0 28 28">${cr.shape==='square'?`<rect x="2" y="2" width="24" height="24" rx="4" fill="${cr.color}" stroke="#1a0000" stroke-width="2"/>`:`<circle cx="14" cy="14" r="12" fill="${cr.color}" stroke="#1a0000" stroke-width="2"/>`}</svg>`
+      :cr.i;
+    btn.innerHTML=`<span style="font-size:1.6rem;display:flex;align-items:center">${iconHtml}</span><span style="font-size:.6rem;font-weight:700;color:var(--tp)">${cr.n}</span>`;
     btn.onclick=()=>{
       addStandaloneCrop(cr.i);
-      // close sheet and overlay without blur
       document.getElementById('addzone-sheet').style.display='none';
       document.getElementById('overlay').style.display='none';
     };
     el.appendChild(btn);
   });
+  // カスタム作物追加ボタン
+  const addBtn=document.createElement('button');
+  addBtn.style.cssText='padding:8px 4px;border-radius:10px;border:2px dashed #7cb342;background:transparent;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;';
+  addBtn.innerHTML=`<span style="font-size:1.6rem">＋</span><span style="font-size:.6rem;font-weight:700;color:#558b2f">作物を追加</span>`;
+  addBtn.onclick=()=>openCustomCropSheet('az-cpick');
+  el.appendChild(addBtn);
   document.getElementById('overlay').style.display='block';
   document.getElementById('addzone-sheet').style.display='block';
 }
@@ -981,6 +1051,79 @@ function qlog(type,date,zid){
   save(); render(); dismissQPop();
 }
 function dismissQPop(){ if(qpopEl){qpopEl.remove();qpopEl=null;} }
+
+// ─── カスタム作物 ───
+const CC_COLORS=['#e83030','#e67e22','#f1c40f','#2ecc71','#3498db','#9b59b6','#1abc9c','#e91e63','#795548','#607d8b','#ffffff','#000000'];
+let ccShape='circle', ccColor='#e83030', ccPickerId=null;
+
+let ccReturnSheet=null; // どのシートから開いたか記録
+function openCustomCropSheet(pickerId){
+  ccPickerId=pickerId; ccShape='circle'; ccColor='#e83030';
+  // 今開いているシートを記録
+  const sheets=['addseg-sheet','zone-sheet','scrop-sheet','addzone-sheet'];
+  ccReturnSheet=sheets.find(id=>document.getElementById(id).style.display==='block')||null;
+  document.getElementById('cc-name').value='';
+  document.getElementById('cc-name').oninput=updateCcPreview;
+  document.getElementById('cc-days').value='';
+  setCcShape('circle');
+  buildCcColors();
+  updateCcPreview();
+  document.querySelectorAll('.sheet').forEach(s=>s.style.display='none');
+  document.getElementById('overlay').style.display='block';
+  document.getElementById('custom-crop-sheet').style.display='block';
+}
+function setCcShape(shape){
+  ccShape=shape;
+  const cb=document.getElementById('cc-circle-btn');
+  const sb=document.getElementById('cc-square-btn');
+  if(shape==='circle'){
+    cb.style.border='2px solid #7cb342'; cb.style.background='rgba(139,195,74,.12)';
+    sb.style.border='2px solid #ccc'; sb.style.background='#f5f5f5';
+  } else {
+    sb.style.border='2px solid #7cb342'; sb.style.background='rgba(139,195,74,.12)';
+    cb.style.border='2px solid #ccc'; cb.style.background='#f5f5f5';
+  }
+  updateCcPreview();
+}
+function buildCcColors(){
+  const el=document.getElementById('cc-colors');
+  el.innerHTML='';
+  CC_COLORS.forEach(col=>{
+    const btn=document.createElement('button');
+    btn.style.cssText=`width:36px;height:36px;border-radius:50%;background:${col};border:${col===ccColor?'3px solid #333':'2px solid rgba(0,0,0,.2)'};cursor:pointer;`;
+    btn.onclick=()=>{ ccColor=col; buildCcColors(); updateCcPreview(); };
+    el.appendChild(btn);
+  });
+}
+function updateCcPreview(){
+  const name=document.getElementById('cc-name').value||'作物名';
+  const svg=ccShape==='square'
+    ?`<svg width="48" height="48" viewBox="0 0 48 48"><rect x="2" y="2" width="44" height="44" rx="8" fill="${ccColor}" stroke="#1a0000" stroke-width="3"/></svg>`
+    :`<svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="${ccColor}" stroke="#1a0000" stroke-width="3"/></svg>`;
+  document.getElementById('cc-preview').innerHTML=svg;
+  document.getElementById('cc-preview-name').textContent=name;
+}
+function saveCustomCrop(){
+  const name=document.getElementById('cc-name').value.trim();
+  if(!name){ alert('名前を入力してください'); return; }
+  const days=parseInt(document.getElementById('cc-days').value)||null;
+  // Generate unique icon key
+  const icon='__custom_'+Date.now();
+  const crop={i:icon,n:name,days,color:ccColor,shape:ccShape,custom:true};
+  if(!S.customCrops) S.customCrops=[];
+  S.customCrops.push(crop);
+  save();
+  selPickIcon=icon;
+  // シートを閉じてから前のシートを再表示
+  document.getElementById('custom-crop-sheet').style.display='none';
+  if(ccReturnSheet){
+    document.getElementById(ccReturnSheet).style.display='block';
+    document.getElementById('overlay').style.display='block';
+  } else {
+    document.getElementById('overlay').style.display='none';
+  }
+  if(ccPickerId) buildCropPick(ccPickerId, icon);
+}
 function copyZone(zid){
   const z=S.zones.find(x=>x.id===zid);
   if(!z) return;
@@ -1006,6 +1149,7 @@ function openSettings(){
   document.querySelectorAll('.sheet').forEach(s=>s.style.display='none');
   document.getElementById('cfg-w').value=S.field.w;
   document.getElementById('cfg-h').value=S.field.h;
+  renderCustomCropList();
   document.getElementById('overlay').style.display='block';
   document.getElementById('settings-sheet').style.display='block';
 }
@@ -1016,8 +1160,30 @@ function saveFieldSize(){
 }
 function resetAll(){
   if(!confirm('すべて消去しますか？')) return;
-  S.zones=[]; S.scrops=[]; S.nzid=1; S.nsid=1; S.ncrid=1;
+  S.zones=[]; S.scrops=[]; S.customCrops=[]; S.nzid=1; S.nsid=1; S.ncrid=1;
   save(); render(); closeAllSheets();
+}
+function renderCustomCropList(){
+  const el=document.getElementById('custom-crop-list');
+  if(!el) return;
+  const crops=S.customCrops||[];
+  if(!crops.length){ el.innerHTML='<div style="font-size:.8rem;color:var(--mu);padding:4px 0">まだオリジナル作物はありません</div>'; return; }
+  el.innerHTML=crops.map((cr,i)=>{
+    const svg=cr.shape==='square'
+      ?`<svg width="20" height="20" viewBox="0 0 20 20"><rect x="1" y="1" width="18" height="18" rx="3" fill="${cr.color}" stroke="#1a0000" stroke-width="1.5"/></svg>`
+      :`<svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="${cr.color}" stroke="#1a0000" stroke-width="1.5"/></svg>`;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#fff;border-radius:10px;margin-bottom:6px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
+      <div style="display:flex;align-items:center;gap:8px">${svg}<span style="font-size:.85rem;font-weight:700">${cr.n}</span></div>
+      <button onclick="deleteCustomCrop('${cr.i}')" style="background:#fce4ec;color:#c62828;border:none;border-radius:8px;padding:4px 10px;font-size:.75rem;font-weight:800;cursor:pointer;font-family:inherit">削除</button>
+    </div>`;
+  }).join('');
+}
+function deleteCustomCrop(icon){
+  S.customCrops=(S.customCrops||[]).filter(c=>c.i!==icon);
+  // also remove from any segs or scrops
+  S.zones.forEach(z=>(z.segs||[]).forEach(s=>{ if(s.cropIcon===icon) s.cropIcon=null; }));
+  S.scrops=S.scrops.filter(s=>s.icon!==icon);
+  save(); render(); renderCustomCropList();
 }
 
 // ─── Tabs ───
